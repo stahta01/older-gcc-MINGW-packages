@@ -9,5 +9,8 @@
 *.log.*
 *.sig
 
-pkg/
-src/
+/*/pkg/
+/*/src/
+/*/*-git/
+/*/*-svn/
+/*/*-hg/
