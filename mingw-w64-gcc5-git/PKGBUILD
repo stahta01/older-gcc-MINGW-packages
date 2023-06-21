@@ -6,7 +6,7 @@
 
 ### Major build options
 _include_sub_folder=       #/${MINGW_CHOST}
-_enable_bootstrap=no    # Use yes for production
+_enable_bootstrap=yes    # Use yes for production
 ### Language build options
 _enable_ada=no
 _enable_fortran=no      # Use yes for production
@@ -33,7 +33,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
         )
 pkgver=5.5.0+d20171010.r1.c15.g926d9947847a
-pkgrel=1
+pkgrel=2
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
