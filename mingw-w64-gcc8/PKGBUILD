@@ -5,20 +5,32 @@
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 # Contributor: wirx6 <wirx654@gmail.com>
 
-#_include_sub_folder=/${MINGW_CHOST}
-_include_sub_folder=
-# Language build options
+### Major build options
+_include_sub_folder=  #/${MINGW_CHOST}
+_enable_bootstrap=no    # Use yes for production; no seems to be ignored in GCC8
+### Language build options
 _enable_ada=no
+_enable_fortran=no      # Use yes for production
 _enable_objc=no
 ### build options not normally changed
+_threads="posix"         # Use posix for production
+_enable_libquadmath=no   # Use no for production
 _enable_libgomp=no   # Yes code not fully added because libgom has build error likely because CRT is to new
+
+
+# =========================================== #
+if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
+   warning "when building FORTRAN; libquadmath is enabled"
+  _enable_libquadmath=yes
+fi
+# =========================================== #
 
 _realname=gcc
 pkgbase=mingw-w64-${_realname}8
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          "${MINGW_PACKAGE_PREFIX}-${_realname}-libs"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran"
+         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
+         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
         )
@@ -27,7 +39,7 @@ pkgver=8.3.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=4
+pkgrel=5
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -158,14 +170,24 @@ build() {
   export CFLAGS="-pipe"
   export CXXFLAGS="-pipe"
 
-  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
-  mkdir -p ${srcdir}/build-${MINGW_CHOST} && cd ${srcdir}/build-${MINGW_CHOST}
+  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
+  mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
   declare -a extra_config
   if check_option "debug" "n"; then
     extra_config+=("--disable-libstdcxx-debug")
   else
     extra_config+=("--enable-libstdcxx-debug")
+  fi
+  #
+  if [[ "$_enable_libquadmath" != "yes" ]]; then
+    extra_config+=('--disable-libquadmath')
+  fi
+  #
+  if [[ "$_enable_bootstrap" == "yes" ]]; then
+    extra_config+=("--enable-bootstrap")
+  elif [[ "$_enable_bootstrap" == "no" ]]; then
+    extra_config+=("--disable-bootstrap")
   fi
 
   case "${CARCH}" in
@@ -181,9 +203,12 @@ build() {
     ;;
   esac
 
-  local _languages="c,lto,c++,fortran"
+  local _languages="c,lto,c++"
   if [ "$_enable_ada" == "yes" ]; then
     _languages+=",ada"
+  fi
+  if [ "$_enable_fortran" == "yes" ]; then
+    _languages+=",fortran"
   fi
   if [ "$_enable_objc" == "yes" ]; then
     _languages+=",objc,obj-c++"
@@ -197,7 +222,6 @@ build() {
     --target=${MINGW_CHOST} \
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
-    --enable-bootstrap \
     --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
@@ -223,8 +247,8 @@ build() {
     --with-libiconv \
     --with-system-zlib \
     --with-{gmp,mpfr,mpc,isl}=${MINGW_PREFIX} \
-    --with-pkgversion="Rev${pkgrel}, Built by MSYS2 project" \
-    --with-bugurl="https://sourceforge.net/projects/msys2" \
+    --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
+    --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
     --with-gnu-as --with-gnu-ld \
     ${_conf}
 
@@ -276,7 +300,10 @@ ENDFILE
 
   cd ${srcdir}${MINGW_PREFIX}
   # libitm* and libvtv* are disbled until fixed
-  cp bin/{libatomic*,libgcc*,libquadmath*,libssp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  cp bin/{libatomic*,libgcc*,libssp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp bin/libquadmath*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  fi
   if [[ "$_enable_libgomp" == "yes" ]]; then
     cp bin/libgomp*.dll ${pkgdir}${MINGW_PREFIX}/bin/
   fi
@@ -339,7 +366,9 @@ package_mingw-w64-gcc() {
     cp lib/libgomp*                                      ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   fi
   # cp lib/libitm*                                         ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
-  cp lib/libquadmath*                                    ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp lib/libquadmath*                                  ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  fi
   cp lib/libssp*                                         ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   # cp lib/libvtv*                                         ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   cp lib/libstdc++*                                      ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
@@ -365,7 +394,9 @@ package_mingw-w64-gcc() {
   if [[ "$_enable_libgomp" == "yes" ]]; then
     cp share/info/libgomp.info*                          ${pkgdir}${MINGW_PREFIX}/share/info/
   fi
-  cp share/info/libquadmath.info*                        ${pkgdir}${MINGW_PREFIX}/share/info/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp share/info/libquadmath.info*                      ${pkgdir}${MINGW_PREFIX}/share/info/
+  fi
 
   #cp share/locale/* ${pkgdir}${MINGW_PREFIX}/share/locale/
   mkdir -p ${pkgdir}${MINGW_PREFIX}/share/gcc-${pkgver%%+*}/python
