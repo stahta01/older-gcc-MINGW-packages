@@ -6,16 +6,32 @@
 # Contributor: wirx6 <wirx654@gmail.com>
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
+### Major build options
+_enable_bootstrap=no    # Use yes for production
+### Language build options
 _enable_ada=no
 _enable_objc=no
 _enable_jit=no
-_threads="posix"
+_enable_d=no            # Use yes for production
+_enable_fortran=no      # Use yes for production
+### build options not normally changed
+_threads="posix"         # Use posix for production
+_enable_libquadmath=no   # Use no for production
+
+# =========================================== #
+if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
+   warning "when building FORTRAN; libquadmath is enabled"
+  _enable_libquadmath=yes
+fi
+# =========================================== #
+
 _realname=gcc
 pkgbase=mingw-w64-${_realname}12
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          "${MINGW_PACKAGE_PREFIX}-${_realname}-libs"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran"
+         $([[ "$_enable_d" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-d")
+         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
+         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit")
@@ -177,6 +193,16 @@ build() {
   else
     extra_config+=("--enable-libstdcxx-debug")
   fi
+  #
+  if [[ "$_enable_libquadmath" != "yes" ]]; then
+    extra_config+=('--disable-libquadmath')
+  fi
+  #
+  if [[ "$_enable_bootstrap" == "yes" ]]; then
+    extra_config+=("--enable-bootstrap")
+  elif [[ "$_enable_bootstrap" == "no" ]]; then
+    extra_config+=("--disable-bootstrap")
+  fi
 
   case "${CARCH}" in
     i686)
@@ -193,9 +219,15 @@ build() {
     ;;
   esac
 
-  local _languages="c,lto,c++,fortran"
+  local _languages="c,lto,c++"
   if [ "$_enable_ada" == "yes" ]; then
     _languages+=",ada"
+  fi
+  if [ "$_enable_d" == "yes" ]; then
+    _languages+=",d"
+  fi
+  if [ "$_enable_fortran" == "yes" ]; then
+    _languages+=",fortran"
   fi
   if [ "$_enable_objc" == "yes" ]; then
     _languages+=",objc,obj-c++"
@@ -229,6 +261,14 @@ build() {
   # In addition adaint.c does `#include <accctrl.h>` which pulls in msxml.h, hacky hack:
   CPPFLAGS+=" -DCOM_NO_WINDOWS_H"
 
+  echo ""
+  echo "CC [gcc] := ${CC-gcc}"
+  ${CC-gcc} --version | head -1
+  ${CC-gcc} --help | tail -1
+  cat ${MINGW_PREFIX}/include/_mingw_mac.h | head -20 | grep __MINGW64_VERSION_MAJOR
+  #cat ${MINGW_PREFIX}/include/_mingw_mac.h | grep __MINGW64_VERSION_STATE
+  echo ""
+
   ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --with-local-prefix=${MINGW_PREFIX}/local \
@@ -237,7 +277,6 @@ build() {
     --target=${MINGW_CHOST} \
     --with-native-system-header-dir=${MINGW_PREFIX}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
-    --enable-bootstrap \
     --enable-checking=release \
     --with-arch=${_arch} \
     --with-tune=generic \
@@ -263,8 +302,8 @@ build() {
     --with-libiconv \
     --with-system-zlib \
     --with-{gmp,mpfr,mpc,isl}=${MINGW_PREFIX} \
-    --with-pkgversion="Rev${pkgrel}, Built by MSYS2 project" \
-    --with-bugurl="https://github.com/msys2/MINGW-packages/issues" \
+    --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
+    --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
     --with-gnu-as \
     --with-gnu-ld \
     "${extra_config[@]}"
@@ -276,7 +315,7 @@ build() {
     sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   fi
 
-  make all || make all V=1 -j1
+  make all # || make all V=1 -j1
 
   rm -rf ${srcdir}${MINGW_PREFIX}
 
@@ -315,7 +354,10 @@ ENDFILE
 
   cd ${srcdir}${MINGW_PREFIX}
   # libitm* and libvtv* are disbled until fixed
-  cp bin/{libatomic*,libgcc*,libgomp*,libquadmath*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  cp bin/{libatomic*,libgcc*,libgomp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp bin/libquadmath*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  fi
   if [ "$_enable_jit" == "yes" ]; then
     rm ${pkgdir}${MINGW_PREFIX}/bin/libgccjit-0.dll
   fi
@@ -362,7 +404,6 @@ package_gcc() {
   cp bin/${MINGW_CHOST}-gcc-nm.exe                      ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/${MINGW_CHOST}-gcc-ranlib.exe                  ${pkgdir}${MINGW_PREFIX}/bin/
 
-  #cp bin/{libgcc*,libgomp*,libquadmath*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
   mkdir -p ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/include
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/include/*.h        ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/include/
   cp -r lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/include-fixed   ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
@@ -383,7 +424,9 @@ package_gcc() {
 
   cp lib/libgomp*                                        ${pkgdir}${MINGW_PREFIX}/lib/
   # cp lib/libitm*                                         ${pkgdir}${MINGW_PREFIX}/lib/
-  cp lib/libquadmath*                                    ${pkgdir}${MINGW_PREFIX}/lib/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp lib/libquadmath*                                  ${pkgdir}${MINGW_PREFIX}/lib/
+  fi
   # cp lib/libvtv*                                         ${pkgdir}${MINGW_PREFIX}/lib/
   cp lib/libstdc++*                                      ${pkgdir}${MINGW_PREFIX}/lib/
   cp lib/libsupc++*                                      ${pkgdir}${MINGW_PREFIX}/lib/
@@ -406,7 +449,9 @@ package_gcc() {
   cp share/info/gccint.info*                             ${pkgdir}${MINGW_PREFIX}/share/info/
   # cp share/info/libitm.info*                             ${pkgdir}${MINGW_PREFIX}/share/info/
   cp share/info/libgomp.info*                            ${pkgdir}${MINGW_PREFIX}/share/info/
-  cp share/info/libquadmath.info*                        ${pkgdir}${MINGW_PREFIX}/share/info/
+  if [[ "$_enable_libquadmath" == "yes" ]]; then
+    cp share/info/libquadmath.info*                      ${pkgdir}${MINGW_PREFIX}/share/info/
+  fi
 
   #cp share/locale/* ${pkgdir}${MINGW_PREFIX}/share/locale/
   mkdir -p ${pkgdir}${MINGW_PREFIX}/share/gcc-${pkgver%%+*}/python
