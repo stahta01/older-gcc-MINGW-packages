@@ -6,16 +6,16 @@
 # Contributor: wirx6 <wirx654@gmail.com>
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
-#_include_sub_folder=/${MINGW_CHOST}
-_include_sub_folder=
-# Major build options
+### Major build options
+_include_sub_folder=       #/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production
-_enable_bootstrap=yes    # Use yes for production
+_enable_bootstrap=no    # Use yes for production
 # Language build options
 _enable_objc=no          # Use no for production
 _enable_jit=no           # Use no for production
 _enable_ada=no
-_enable_fortran=yes      # Use yes for production
+_enable_d=no            # Use yes for production
+_enable_fortran=no      # Use yes for production
 # Module build options
 _enable_libstdcxx=yes    # Use yes for production
 _enable_libatomic=yes    # Use yes for production
@@ -42,6 +42,7 @@ _realname=gcc
 pkgbase=mingw-w64-${_realname}10
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          "${MINGW_PACKAGE_PREFIX}-${_realname}-libs"
+         $([[ "$_enable_d" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-d")
          $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
          $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
@@ -53,7 +54,7 @@ pkgver=10.3.0
 #_majorver=${pkgver:0:1}
 #_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
-pkgrel=6
+pkgrel=7
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64')
@@ -231,8 +232,8 @@ build() {
   export CFLAGS="-pipe"
   export CXXFLAGS="-pipe"
 
-  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
-  mkdir -p ${srcdir}/build-${MINGW_CHOST} && cd ${srcdir}/build-${MINGW_CHOST}
+  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
+  mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
   declare -a extra_config
   if [[ "$_enable_libstdcxx" != "yes" ]]; then
@@ -299,6 +300,9 @@ build() {
   if [ "$_enable_ada" == "yes" ]; then
     _languages+=",ada"
   fi
+  if [ "$_enable_d" == "yes" ]; then
+    _languages+=",d"
+  fi
   if [ "$_enable_fortran" == "yes" ]; then
     _languages+=",fortran"
   fi
@@ -314,6 +318,14 @@ build() {
 
   local _LDFLAGS_FOR_TARGET="$LDFLAGS"
   LDFLAGS+=" -Wl,--disable-dynamicbase"
+
+  echo ""
+  echo "CC [gcc] := ${CC-gcc}"
+  ${CC-gcc} --version | head -1
+  ${CC-gcc} --help | tail -1
+  cat ${MINGW_PREFIX}/include/_mingw_mac.h | head -20 | grep __MINGW64_VERSION_MAJOR
+  #cat ${MINGW_PREFIX}/include/_mingw_mac.h | grep __MINGW64_VERSION_STATE
+  echo ""
 
   ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
@@ -345,8 +357,8 @@ build() {
     --with-libiconv \
     --with-system-zlib \
     --with-{gmp,mpfr,mpc,isl}=${MINGW_PREFIX} \
-    --with-pkgversion="Rev${pkgrel}, Built by MSYS2 project" \
-    --with-bugurl="https://github.com/msys2/MINGW-packages/issues" \
+    --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
+    --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
     --with-gnu-as --with-gnu-ld \
     --with-boot-ldflags="${LDFLAGS} -static-libstdc++ -static-libgcc" \
     LDFLAGS_FOR_TARGET="${_LDFLAGS_FOR_TARGET}" \
@@ -597,6 +609,15 @@ package_gcc-ada() {
   cp share/info/gnat-style.info*                        ${pkgdir}${MINGW_PREFIX}/share/info/
   cp share/info/gnat_rm.info*                           ${pkgdir}${MINGW_PREFIX}/share/info/
   cp share/info/gnat_ugn.info*                          ${pkgdir}${MINGW_PREFIX}/share/info/
+}
+
+package_gcc-d() {
+  pkgdesc="GNU Compiler Collection (D Frontend) for MinGW-w64"
+  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}-${pkgrel}")
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib}
+
+  cd ${srcdir}${MINGW_PREFIX}
 }
 
 package_gcc-objc() {
