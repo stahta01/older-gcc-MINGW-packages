@@ -446,7 +446,8 @@ package_gcc() {
   if [[ "$_enable_threads" == "yes" && "$_threads" == "posix" ]]; then
      depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
   fi
-  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base"
+            "${MINGW_PACKAGE_PREFIX}-cc")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,include,lib,share}
