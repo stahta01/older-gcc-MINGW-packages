@@ -6,7 +6,11 @@
 
 ### Major build options
 _include_sub_folder=       #/${MINGW_CHOST}
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
+_enable_bootstrap=no
+else
 _enable_bootstrap=yes    # Use yes for production
+fi
 ### Language build options
 _enable_ada=no
 _enable_fortran=no      # Use yes for production
