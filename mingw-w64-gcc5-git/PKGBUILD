@@ -178,6 +178,7 @@ build() {
 
   declare -a extra_config
   extra_config+=('--without-isl')
+  extra_config+=('disable-graphite')
   if [[ "$_enable_libquadmath" != "yes" ]]; then
     extra_config+=('--disable-libquadmath')
   fi
@@ -233,7 +234,6 @@ build() {
     --enable-shared --enable-static \
     --enable-libatomic \
     --enable-threads=${_threads} \
-    --enable-graphite \
     --enable-fully-dynamic-string \
     --enable-libstdcxx-time=yes \
     --disable-libstdcxx-pch \
