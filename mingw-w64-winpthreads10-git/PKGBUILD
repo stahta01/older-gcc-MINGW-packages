@@ -57,6 +57,11 @@ build() {
     extra_config+=("CXXFLAGS=")
   fi
 
+  echo ""
+  echo "CC [gcc] := ${CC-gcc}"
+  ${CC-gcc} --version | head -1
+  echo ""
+
   ../mingw-w64/mingw-w64-libraries/winpthreads/configure \
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
