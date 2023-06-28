@@ -214,9 +214,13 @@ prepare() {
 build() {
   # Replace the MSys2 default FLAG values
   export LDFLAGS="-pipe"
-  export CPPFLAGS=""
   export CFLAGS="-pipe"
   export CXXFLAGS="-pipe"
+  if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]] || [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
+    export CPPFLAGS="-D_UCRT=1"
+  else
+    export CPPFLAGS=""
+  fi
 
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
