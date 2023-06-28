@@ -7,7 +7,7 @@
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
 ### Major build options
-_enable_bootstrap=no    # Use yes for production
+_enable_bootstrap=yes    # Use yes for production
 ### Language build options
 _enable_ada=no
 _enable_objc=no
