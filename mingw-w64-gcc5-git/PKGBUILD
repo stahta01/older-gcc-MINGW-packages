@@ -121,7 +121,9 @@ pkgver() {
 prepare() {
   cd ${srcdir}/${_sourcedir}
 
-  git am --abort || true 
+  git am --abort || true
+  
+  git clean -fxd
 
   _git_base_commit=$(git rev-parse HEAD)
 
