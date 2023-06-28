@@ -266,8 +266,7 @@ build() {
   echo "CC [gcc] := ${CC-gcc}"
   ${CC-gcc} --version | head -1
   ${CC-gcc} --help | tail -1
-  cat ${MINGW_PREFIX}/include/_mingw_mac.h | head -20 | grep __MINGW64_VERSION_MAJOR
-  #cat ${MINGW_PREFIX}/include/_mingw_mac.h | grep __MINGW64_VERSION_STATE
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
   echo ""
 
   ../${_realname}-${pkgver}/configure \
