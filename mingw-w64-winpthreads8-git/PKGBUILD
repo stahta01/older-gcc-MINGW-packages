@@ -136,4 +136,12 @@ package_mingw-w64-x86_64-libwinpthread-git() {
   package_libwinpthread
 }
 
+# UCRT 64-bit wrappers
+package_mingw-w64-ucrt-x86_64-winpthreads-git() {
+  package_winpthreads
+}
+
+package_mingw-w64-ucrt-x86_64-libwinpthread-git() {
+  package_libwinpthread
+}
 # [1] https://locklessinc.com/articles/pthreads_on_windows/
