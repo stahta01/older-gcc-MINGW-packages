@@ -32,7 +32,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
         )
-pkgver=6.4.0
+pkgver=6.5.0
 pkgrel=1
 _sourcedir=${_realname}-${pkgver}
 pkgdesc="GCC for the MinGW-w64"
@@ -56,7 +56,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
 optdepends=()
 options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 ISL_VERSION=0.16.1
-noextract=("isl-${ISL_VERSION}.tar.bz2")
+noextract=("isl-${ISL_VERSION}.tar.bz2") # "${_realname}-${pkgver}.tar.gz")
 source=("https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.bz2"
         "https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver}/${_realname}-${pkgver}.tar.gz"
         "gdbinit"
@@ -82,12 +82,12 @@ source=("https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.bz2"
         "0018-PR-77333-Set-clone-call-fntype-to-callee-type.patch"
         "0100-gcc-4.8-libstdc++export.patch"
         "0110-gcc-4.7-stdthreads.patch"
-        "0130-libstdc++-in-out.patch"
+        "0130-gcc6.5-libstdc++-in-out.patch"
         "0140-gcc-6-Enable-std-experimental-filesystem.patch"
         '0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch'
-        "gcc7-pr79665.patch")
+        '0160-gcc6-libstdc++-87822-nested-pair.patch')
 sha256sums=('412538bb65c799ac98e17e8cfcdacbb257a57362acfaaff254b0fcae970126d2'
-            '4715f02413f8a91d02d967521c084990c99ce1a671b8a450a80fbd4245f4b728'
+            '4eed92b3c24af2e774de94e96993aadbf6761cdf7a0345e59eb826d20a9ebf73'
             'dea2bbad4967280910559c6a11b865aeec19cab34647fb5894cb498b24b14462'
             '659430857ccd7429671ccdf6c8239be8eb8c53f9a4c279d4023fd6a4e2a9694f'
             '83655a7202f0a0dcce1782d4b365252bf1ad12a522b7ad82ab578ee5ec46433b'
@@ -111,10 +111,10 @@ sha256sums=('412538bb65c799ac98e17e8cfcdacbb257a57362acfaaff254b0fcae970126d2'
             '62dccf1e2e85068ee1060af24162c760ca5d76b0d9690efa62fac9d959b6aac6'
             '21191b4fd57ce5f230fcc97b4d9ae31bdc387d7c7c8e39436aa7e4268d278d3d'
             '5e0fc1437ce0b357e78d440692e3a30a7905a5f360a67928a95b14ec8d45365b'
-            '0e24c6955f53a6c84cca9a8c9a372054bd90d5b1a2c6c3f29e36cb350f973b5d'
+            'c978c2875ff3a391e7f7ab661dc278c8eff05bb2cf76a12a6b6394c787859489'
             '4c190efddb73a3e0a7163653e60f299e66dfb172f4d0f2f775fdd80713c1b845'
             '8993a89bdefede6e3861ee6f6c839fb0356a89954062d1efe300a3411c609b02'
-            '24524102ba4a4360881e45aea4c0b8fd2f97969f00c0df05e714a9ee6c6b913d')
+            'cce0a9a87002b64cf88e595f1520ccfaff7a4c39ee1905d82d203a1ecdfbda29')
 # =========================================== #
 # Helper macros to help make tasks easier     #
 apply_patch_with_msg() {
@@ -195,11 +195,14 @@ prepare() {
   #apply_patch_with_msg 0100-gcc-4.8-libstdc++export.patch
   #apply_patch_with_msg 0110-gcc-4.7-stdthreads.patch
 
-  apply_patch_with_msg 0130-libstdc++-in-out.patch
+  apply_patch_with_msg 0130-gcc6.5-libstdc++-in-out.patch
 
-  apply_patch_with_msg 0140-gcc-6-Enable-std-experimental-filesystem.patch
+  #TAS# apply_patch_with_msg 0140-gcc-6-Enable-std-experimental-filesystem.patch
 
   apply_patch_with_msg 0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch
+
+  # 6.5.0 patch
+  apply_patch_with_msg 0160-gcc6-libstdc++-87822-nested-pair.patch
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
