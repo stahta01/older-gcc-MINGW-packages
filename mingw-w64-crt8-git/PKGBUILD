@@ -8,9 +8,9 @@ _realname=crt
 pkgbase=mingw-w64-${_realname}-git
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-svn")
-pkgver=8.0.0.5815.e9b57ef58
+pkgver=8.0.2.r0.g368175526
 pkgrel=1
-_commit='223de3ab824a8b57771b8e66ca84fb31361a2f20'
+_commit='36817552657ab6f887d6743c3e8320194cfdced4'
 pkgdesc='MinGW-w64 CRT for Windows'
 arch=('any')
 url='https://mingw-w64.sourceforge.io/'
@@ -32,10 +32,11 @@ sha256sums=('SKIP'
 
 pkgver() {
   cd "${srcdir}/mingw-w64"
-  local _major=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MAJOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
-  local _minor=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MINOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
-  local _rev=0
-  printf "%s.%s.%s.%s.%s" ${_major} ${_minor} ${_rev} "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  #local _major=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MAJOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  #local _minor=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MINOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  #local _rev=0
+  #printf "%s.%s.%s.%s.%s" ${_major} ${_minor} ${_rev} "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  git describe --long ${_commit} | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
 }
 
 prepare() {
@@ -66,8 +67,8 @@ build() {
   ${CC-gcc} --version | head -1
   echo ""
 
-  [[ -d ${srcdir}/crt-${MINGW_CHOST} ]] && rm -rf ${srcdir}/crt-${MINGW_CHOST}
-  mkdir -p ${srcdir}/crt-${MINGW_CHOST} && cd ${srcdir}/crt-${MINGW_CHOST}
+  [[ -d ${srcdir}/crt-${MSYSTEM} ]] && rm -rf ${srcdir}/crt-${MSYSTEM}
+  mkdir -p ${srcdir}/crt-${MSYSTEM} && cd ${srcdir}/crt-${MSYSTEM}
   ${srcdir}/mingw-w64/mingw-w64-crt/configure \
     --prefix=${MINGW_PREFIX}${_include_sub_folder} \
     --build=${MINGW_CHOST} \
@@ -82,7 +83,7 @@ build() {
 
 package() {
   msg "Installing ${MINGW_CHOST} crt"
-  cd ${srcdir}/crt-${MINGW_CHOST}
+  cd ${srcdir}/crt-${MSYSTEM}
   make DESTDIR=${pkgdir} install-strip
 
   msg "Installing MinGW-w64 licenses"
