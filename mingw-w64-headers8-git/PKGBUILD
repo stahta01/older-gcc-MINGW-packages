@@ -9,9 +9,9 @@ pkgbase=mingw-w64-${_realname}8-git
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-svn")
 pkgdesc="MinGW-w64 headers for Windows"
-pkgver=8.0.0.5815.e9b57ef58
+pkgver=8.0.2.r0.g368175526
 pkgrel=1
-_commit='223de3ab824a8b57771b8e66ca84fb31361a2f20'
+_commit='36817552657ab6f887d6743c3e8320194cfdced4'
 arch=('any')
 url="https://mingw-w64.sourceforge.io/"
 license=('custom')
@@ -29,10 +29,11 @@ sha256sums=('SKIP'
 
 pkgver() {
   cd "${srcdir}/mingw-w64"
-  local _major=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MAJOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
-  local _minor=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MINOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
-  local _rev=0
-  printf "%s.%s.%s.%s.%s" ${_major} ${_minor} ${_rev} "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  #local _major=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MAJOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  #local _minor=$(head -n 16 mingw-w64-headers/crt/_mingw_mac.h | grep '__MINGW64_VERSION_MINOR' | sed -e 's/.* //' | tr '\n' '.' | sed 's/.$/\n/')
+  #local _rev=0
+  #printf "%s.%s.%s.%s.%s" ${_major} ${_minor} ${_rev} "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  git describe --long ${_commit} | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
 }
 
 prepare() {
@@ -58,9 +59,9 @@ build() {
   ${CC-gcc} --version | head -1
   echo ""
 
-  msg "Configuring ${MINGW_CHOST} headers"
-  [[ -d ${srcdir}/headers-${MINGW_CHOST} ]] && rm -rf ${srcdir}/headers-${MINGW_CHOST}
-  mkdir -p ${srcdir}/headers-${MINGW_CHOST} && cd ${srcdir}/headers-${MINGW_CHOST}
+  msg "Configuring ${MSYSTEM} headers"
+  [[ -d ${srcdir}/headers-${MSYSTEM} ]] && rm -rf ${srcdir}/headers-${MSYSTEM}
+  mkdir -p ${srcdir}/headers-${MSYSTEM} && cd ${srcdir}/headers-${MSYSTEM}
   ${srcdir}/mingw-w64/mingw-w64-headers/configure \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
@@ -74,8 +75,8 @@ build() {
 }
 
 package() {
-  msg "Installing ${MINGW_CHOST} headers"
-  cd ${srcdir}/headers-${MINGW_CHOST}
+  msg "Installing ${MSYSTEM} headers"
+  cd ${srcdir}/headers-${MSYSTEM}
   make DESTDIR=${pkgdir} install
 
   rm ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}/include/pthread_signal.h
