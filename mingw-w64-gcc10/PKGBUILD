@@ -33,6 +33,9 @@ else
   _enable_libgomp=no
   _enable_libatomic=no
 fi
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
+  _enable_bootstrap=yes
+fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
    warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
