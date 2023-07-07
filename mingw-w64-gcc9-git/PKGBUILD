@@ -266,11 +266,11 @@ build() {
 
   make all
 
-  rm -rf ${srcdir}/${MSYSTEM}
+  rm -rf ${srcdir}${MINGW_PREFIX}
 
   make -j1 DESTDIR=${srcdir} install
   if [ "$_enable_ada" == "yes" ]; then
-    mv ${srcdir}/${MSYSTEM}/lib/gcc/${MINGW_CHOST}/${_realpkgver}/adalib/*.dll ${srcdir}/${MSYSTEM}/bin/
+    mv ${srcdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${_realpkgver}/adalib/*.dll ${srcdir}${MINGW_PREFIX}/bin/
   fi
 }
 
@@ -305,7 +305,7 @@ ENDFILE
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
 
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   # libitm* and libvtv* are disbled until fixed
   cp bin/{libatomic*,libgcc*,libssp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
   if [[ "$_enable_libquadmath" == "yes" ]]; then
@@ -333,7 +333,7 @@ package_mingw-w64-gcc-git() {
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,include,lib,share}
 
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   cp bin/cpp.exe                                        ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/gcc.exe                                        ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/gcc.exe                                        ${pkgdir}${MINGW_PREFIX}/bin/cc.exe
@@ -418,7 +418,7 @@ package_mingw-w64-gcc-libgfortran-git() {
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   cp bin/libgfortran*.dll                                ${pkgdir}${MINGW_PREFIX}/bin/
 }
 
@@ -431,7 +431,7 @@ package_mingw-w64-gcc-fortran-git() {
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   cp bin/gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/${MINGW_CHOST}-gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
 
@@ -454,7 +454,7 @@ package_mingw-w64-gcc-ada-git() {
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   cp bin/gnat*.exe ${pkgdir}${MINGW_PREFIX}/bin/
 
   cp bin/{libgnarl*,libgnat*}.dll                       ${pkgdir}${MINGW_PREFIX}/bin/
@@ -478,7 +478,7 @@ package_mingw-w64-gcc-objc-git() {
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib}
 
-  cd ${srcdir}/${MSYSTEM}
+  cd ${srcdir}${MINGW_PREFIX}
   cp bin/libobjc*.dll ${pkgdir}${MINGW_PREFIX}/bin/
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${_realpkgver}/include
