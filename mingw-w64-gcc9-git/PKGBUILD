@@ -4,7 +4,6 @@
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 # Contributor: Liu Hao <lh_mouse@126.com>
-# Contributor: Tim Stahlhut <stahta01@gmail.com>
 
 ### Major build options
 _include_sub_folder=       #/${MINGW_CHOST}
