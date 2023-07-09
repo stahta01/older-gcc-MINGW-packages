@@ -38,7 +38,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
         )
-pkgver=8.5.0+d20210514.r1.c11.geafe83f2f20e
+pkgver=8.5.0+d20210514.r1.c12.geafe83f2f20e
 pkgrel=1
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
@@ -66,7 +66,7 @@ _branch=releases/gcc-8
 _realpkgver="$(git archive --remote=git://gcc.gnu.org/git/gcc.git refs/heads/${_branch}:gcc/ BASE-VER | tar -xO)"
 
 # git+https://gcc.gnu.org/git/gcc.git#branch=${_branch}
-source=(${_sourcedir}::"git://gcc.gnu.org/git/gcc.git#branch=${_branch}"
+source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
         "0002-Relocate-libintl.patch"
         "0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch"
         "0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch"
@@ -77,12 +77,9 @@ source=(${_sourcedir}::"git://gcc.gnu.org/git/gcc.git#branch=${_branch}"
         "0010-Fix-using-large-PCH.patch"
         "0011-Enable-shared-gnat-implib.patch"
         "0014-clone_function_name_1-Retain-any-stdcall-suffix.patch"
-        "0014-gcc-9-branch-clone_function_name_1-Retain-any-stdcall-suffix.patch"
-        "0016-gcc-7-branch-disable-weak-refs-in-libstdc++.patch"
-        "0017-gcc-7-branch-Enable-std-experimental-filesystem.patch"
-        "0018-gcc-7-branch-Enable-a-native-GCC-to-color-diagnostic-messages-sen.patch"
         "0019-gcc-8-branch-Backport-patches-for-std-filesystem-from-master.patch"
-        "0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch")
+        "0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch"
+        '0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch')
 sha256sums=('SKIP'
             '83e9c6f76f728ae3e2f2eabb588b0d6cea7a3eda03cd5e77aed9d613143b7348'
             '6033acda690786397059536787a6577e1a9f2b39f8a66276821917066094f43c'
@@ -94,12 +91,9 @@ sha256sums=('SKIP'
             '0decbbebda7ceac91da5d3dec9b7330f406a4358fa150560f08ff6f54739035f'
             '8faff8e503a617f283270f411399a8bcacda3ab62b4072dedf117e108af4844a'
             '60a58ed41389691a68ef4b7d47a0328df4d28d26e6c680a6b06b31191481ca65'
-            '2321c7dce29a600477e481d16d847f05dc8c6d6461ee1eba7814c5bf62c2ef95'
-            'c1e271c166de0062092cb61d50977c0e61d75b0ae6fb086cb8bb4da2b3fd18d7'
-            'b1c3c20bf501cebbcb02b4a50f117a4f90eb4fb79eac7aa99c85e2c54c106790'
-            '33392651e17b81609718873ff32606deee5f3fc5176c197bb96eedc3dada8912'
             'bf83cbc79de4c86f02664c8a624e26b12f570e3c31116fc7c46ecf655696f9a6'
-            '2331365b6d42250d83eba36a1ef1a02e56b81a7c2595df6a43cb1a6abbcb99f0')
+            '2331365b6d42250d83eba36a1ef1a02e56b81a7c2595df6a43cb1a6abbcb99f0'
+            'bfc47d62320c9c6c8066cf31664ef9c5b23e829a2ff068ab27e8a226009c6147')
 
 _git_base_commit=
 
@@ -128,20 +122,12 @@ prepare() {
   ${GIT_AM} ${srcdir}/0008-Prettify-linking-no-undefined.patch
   ${GIT_AM} ${srcdir}/0010-Fix-using-large-PCH.patch
   ${GIT_AM} ${srcdir}/0011-Enable-shared-gnat-implib.patch
-  if [ "${_branch}" != "releases/gcc-9" ]; then
-    ${GIT_AM} ${srcdir}/0014-clone_function_name_1-Retain-any-stdcall-suffix.patch
-  else
-    ${GIT_AM} ${srcdir}/0014-gcc-9-branch-clone_function_name_1-Retain-any-stdcall-suffix.patch
-  fi
-  if [ "${_branch}" == "releases/gcc-7" ]; then
-    ${GIT_AM} ${srcdir}/0016-gcc-7-branch-disable-weak-refs-in-libstdc++.patch
-    ${GIT_AM} ${srcdir}/0017-gcc-7-branch-Enable-std-experimental-filesystem.patch
-    ${GIT_AM} ${srcdir}/0018-gcc-7-branch-Enable-a-native-GCC-to-color-diagnostic-messages-sen.patch
-  fi
+  ${GIT_AM} ${srcdir}/0014-clone_function_name_1-Retain-any-stdcall-suffix.patch
   #if [ "${_branch}" == "releases/gcc-8" ]; then
     ##TAS#${GIT_AM} ${srcdir}/0019-gcc-8-branch-Backport-patches-for-std-filesystem-from-master.patch
   #fi
   ${GIT_AM} ${srcdir}/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
+  ${GIT_AM} ${srcdir}/0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
@@ -271,12 +257,12 @@ build() {
     sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   fi
 
-  if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
-    export PATH="${srcdir}/build-${MSYSTEM}/gcc":${PATH}
-    echo "PATH := ${PATH}"
-  fi
+  #if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
+    #export PATH="${srcdir}/build-${MSYSTEM}/gcc":${PATH}
+    #echo "PATH := ${PATH}"
+  #fi
 
-  make all -j1 # || make all V=1 -j1
+  make all # -j1 # || make all V=1 -j1
 
   rm -rf ${srcdir}${MINGW_PREFIX}
 
