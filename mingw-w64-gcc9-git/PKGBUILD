@@ -18,11 +18,16 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes
 
 # =========================================== #
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "UCRT fails to build libgomp; so, libgomp was disabled"
+fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
   _enable_bootstrap=yes
+  warning "UCRT requires bootstrap to build"
 fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
-   warning "when building FORTRAN; libquadmath is enabled"
+  warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
 fi
 # =========================================== #
