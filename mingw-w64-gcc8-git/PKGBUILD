@@ -19,9 +19,9 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=no
 
 # =========================================== #
-if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
-  _enable_bootstrap=yes
-fi
+#if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
+  #_enable_bootstrap=yes
+#fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
    warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
@@ -93,7 +93,7 @@ sha256sums=('SKIP'
             '60a58ed41389691a68ef4b7d47a0328df4d28d26e6c680a6b06b31191481ca65'
             'bf83cbc79de4c86f02664c8a624e26b12f570e3c31116fc7c46ecf655696f9a6'
             '2331365b6d42250d83eba36a1ef1a02e56b81a7c2595df6a43cb1a6abbcb99f0'
-            'bfc47d62320c9c6c8066cf31664ef9c5b23e829a2ff068ab27e8a226009c6147')
+            '8c72f2cf3a53603fd0ab4ff48ff7450330964786b09ed38c8ff1b6bcf2ad223d')
 
 _git_base_commit=
 
@@ -101,10 +101,14 @@ pkgver() {
   cd ${srcdir}/${_sourcedir}
   local _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
   local _gcc_date=$(head -n 34 gcc/DATESTAMP | sed -e 's/.* //' | tr -d '"\n')
-  printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
-    $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
-    $(git rev-list --count ${_git_base_commit}..HEAD) \
-    $(git rev-parse --short=12 ${_git_base_commit})
+  if [[ -n "${_git_base_commit}" ]]; then
+    printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
+      $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
+      $(git rev-list --count ${_git_base_commit}..HEAD) \
+      $(git rev-parse --short=12 ${_git_base_commit})
+  else
+    printf "%s" ${pkgver}
+  fi
 }
 
 prepare() {
@@ -128,18 +132,22 @@ prepare() {
   #fi
   ${GIT_AM} ${srcdir}/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
   ${GIT_AM} ${srcdir}/0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch
+}
+
+build() {
+  cd ${srcdir}/${_sourcedir}
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
+  git restore configure
   sed -i 's/${prefix}\/mingw\//${prefix}\//g' configure
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
   local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
+  git restore gcc/config/i386/mingw32.h
   sed -i "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
-}
 
-build() {
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
@@ -256,11 +264,6 @@ build() {
     sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
     sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   fi
-
-  #if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
-    #export PATH="${srcdir}/build-${MSYSTEM}/gcc":${PATH}
-    #echo "PATH := ${PATH}"
-  #fi
 
   make all # -j1 # || make all V=1 -j1
 
