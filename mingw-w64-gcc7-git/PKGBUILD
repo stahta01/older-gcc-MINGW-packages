@@ -254,6 +254,7 @@ build() {
   echo "CC [gcc] := ${CC-gcc}"
   ${CC-gcc} --version | head -1
   ${CC-gcc} --help | tail -1
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-headers
   pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
   echo ""
   echo "LDFLAGS := ${LDFLAGS}"
