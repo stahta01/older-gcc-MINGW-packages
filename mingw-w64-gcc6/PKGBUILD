@@ -14,12 +14,13 @@ _enable_objc=no          # Use no for production
 ### build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
-_enable_libgomp=no       # Use no till CRT version is reduced
+_enable_libgomp=yes      # Use yes for production
 
 # =========================================== #
-#if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
-  #_enable_bootstrap=yes
-#fi
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "UCRT fails to build libgomp; so, libgomp was disabled"
+fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
    warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
