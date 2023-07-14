@@ -8,23 +8,25 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_enable_bootstrap=no    # Use yes for production
+_enable_bootstrap=yes    # Use yes for production
 ### Language build options
 _enable_fortran=no
 _enable_ada=no
 _enable_objc=no
-_enable_lto=yes          # LTO means link time optimization
-# build options not normally changed
+# LTO means link time optimization
+_enable_lto=yes          # Use yes for production 
+### build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
-_enable_libgomp=no      # Use yes for production
-_enable_isl=no          # Use yes for production
-_enable_plugin=no       # Use yes for production
+_enable_libgomp=yes      # Use yes for production
+_enable_isl=yes          # Use yes for production
+_enable_plugin=yes       # Use yes for production
 
 # =========================================== #
-#if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
-  #_enable_bootstrap=yes
-#fi
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "UCRT fails to build libgomp; so, libgomp was disabled"
+fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
   warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
@@ -67,12 +69,12 @@ options=('staticlibs' '!emptydirs' '!strip' 'debug')
 
 _branch=releases/gcc-7
 
-# _commit=b2d961e7342b5ba4e57adfa81cb189b738d10901 # releases/gcc-7            # builds once? ?yes?  builds itself ?no?
-# _commit=adafdb1e7212d53a0ff4c58f0f42dc96200affbb # (tag: releases/gcc-7.4.0) # builds once ???   builds itself ???
-# _commit=6184085fc664265dc78fd1ad4204c0cbef202628 # (tag: releases/gcc-7.3.0) # builds once ???   builds itself ???
-# _commit=586a0829dc38626ca27b79e5dd689fae32fc8ca8 # (tag: releases/gcc-7.2.0) # builds once ???   builds itself ???
-# _commit=303f81ad7e9f278d5ea5a8bd4193ed9da76bc251 # (tag: releases/gcc-7.1.0) # builds once ???   builds itself ???
-# _commit=70f4fdeb67fe065041a52304bb20f6ce701b1cf7 # (tag: basepoints/gcc-7)   # builds once? ?yes?   builds itself? ?yes?
+# _commit=b2d961e7342b5ba4e57adfa81cb189b738d10901 # releases/gcc-7            #
+# _commit=adafdb1e7212d53a0ff4c58f0f42dc96200affbb # (tag: releases/gcc-7.4.0) #
+# _commit=6184085fc664265dc78fd1ad4204c0cbef202628 # (tag: releases/gcc-7.3.0) #
+# _commit=586a0829dc38626ca27b79e5dd689fae32fc8ca8 # (tag: releases/gcc-7.2.0) #
+# _commit=303f81ad7e9f278d5ea5a8bd4193ed9da76bc251 # (tag: releases/gcc-7.1.0) #
+# _commit=70f4fdeb67fe065041a52304bb20f6ce701b1cf7 # (tag: basepoints/gcc-7)   #
 
 source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
 #source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
@@ -138,10 +140,7 @@ pkgver() {
 prepare() {
   cd ${srcdir}/${_sourcedir}
   _git_base_commit=$(git rev-parse HEAD)
-  # Deleting these two files will not normally be needed; but, better to be safe.
-  del_file_exists \
-    configure.sedbak \
-    gcc/config/i386/mingw32.h.sedbak
+
   GIT_AM="git am --committer-date-is-author-date"
   ${GIT_AM} ${srcdir}/0002-Relocate-libintl.patch
   ${GIT_AM} ${srcdir}/0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
@@ -410,9 +409,9 @@ package_mingw-w64-gcc-git() {
     cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/liblto*          ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   fi
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libgcov*           ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
-  if [[ "$_enable_lto" == "yes" ]]; then
+  #if [[ "$_enable_lto" == "yes" ]]; then
     cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/lto*.exe         ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
-  fi
+  #fi
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/cc1plus.exe        ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
 
   cp lib/libatomic*                                           ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
