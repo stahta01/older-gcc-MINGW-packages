@@ -7,7 +7,7 @@
 # Contributor: Tim Stahlhut <stahta01@gmail.com>
 
 ### Major build options
-_include_sub_folder=       #/${MINGW_CHOST}
+_include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no    # Use yes for production
 ### Language build options
 _enable_fortran=no
