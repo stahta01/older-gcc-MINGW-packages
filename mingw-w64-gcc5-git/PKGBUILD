@@ -6,11 +6,7 @@
 
 ### Major build options
 _include_sub_folder=       #/${MINGW_CHOST}
-if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
-_enable_bootstrap=no
-else
-_enable_bootstrap=yes    # Use yes for production
-fi
+_enable_bootstrap=no    # Use yes for production
 ### Language build options
 _enable_ada=no
 _enable_fortran=no      # Use yes for production
@@ -18,11 +14,11 @@ _enable_objc=no          # Use no for production
 ### build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
-_enable_libgomp=no       # Use no till CRT version is reduced
+_enable_libgomp=no
 
 # =========================================== #
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
-   warning "when building FORTRAN; libquadmath is enabled"
+  warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
 fi
 # =========================================== #
@@ -36,8 +32,8 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
         )
-pkgver=5.5.0+d20171010.r1.c16.g926d9947847a
-pkgrel=2
+pkgver=5.5.0+d20171010.r1.c17.g926d9947847a
+pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
@@ -77,7 +73,8 @@ source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_br
         "0014-clone_function_name_1-Retain-any-stdcall-suffix.patch"
         "0015-Force-linking-to-libgcc_s_dw2-1.dll-deprecated.patch"
         '0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch'
-        '0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch')
+        '0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch'
+        '0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch')
 sha256sums=('SKIP'
             '83e9c6f76f728ae3e2f2eabb588b0d6cea7a3eda03cd5e77aed9d613143b7348'
             '6033acda690786397059536787a6577e1a9f2b39f8a66276821917066094f43c'
@@ -94,7 +91,8 @@ sha256sums=('SKIP'
             'ad4bb777a7f19070e83bdf5046281ee9e359ed039c70179285c4119244cf9093'
             '262c6fb0f6c9951d69e4c2dcc27949aa8f2cca8e672faf66740a7dbba4a4cd2c'
             'bfa0fa6ff36504974433296e9276751e9bc62e68547994bea3db86fd2984f500'
-            '8993a89bdefede6e3861ee6f6c839fb0356a89954062d1efe300a3411c609b02')
+            '8993a89bdefede6e3861ee6f6c839fb0356a89954062d1efe300a3411c609b02'
+            '8c72f2cf3a53603fd0ab4ff48ff7450330964786b09ed38c8ff1b6bcf2ad223d')
 # =========================================== #
 # Helper macros to help make tasks easier     #
 del_file_exists() {
@@ -112,10 +110,14 @@ pkgver() {
   cd ${srcdir}/${_sourcedir}
   local _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
   local _gcc_date=$(head -n 34 gcc/DATESTAMP | sed -e 's/.* //' | tr -d '"\n')
-  printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
-    $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
-    $(git rev-list --count ${_git_base_commit}..HEAD) \
-    $(git rev-parse --short=12 ${_git_base_commit})
+  if [[ -n "${_git_base_commit}" ]]; then
+    printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
+      $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
+      $(git rev-list --count ${_git_base_commit}..HEAD) \
+      $(git rev-parse --short=12 ${_git_base_commit})
+  else
+    printf "%s" ${pkgver}
+  fi
 }
 
 prepare() {
@@ -153,17 +155,23 @@ prepare() {
 
   git am "${srcdir}"/0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch
 
+  git am "${srcdir}"/0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch
+}
+
+build() {
+  cd ${srcdir}/${_sourcedir}
+
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
+  git restore configure
   sed -i 's/${prefix}\/mingw\//${prefix}\//g' configure
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
   local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
+  git restore gcc/config/i386/mingw32.h
   sed -i "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
-}
 
-build() {
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
@@ -177,6 +185,7 @@ build() {
   echo "CC [gcc] := ${CC-gcc}"
   ${CC-gcc} --version | head -1
   ${CC-gcc} --help | tail -1
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-headers
   pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
   echo ""
 
@@ -549,7 +558,7 @@ package_mingw-w64-ucrt-x86_64-gcc-libs-git() {
   package_mingw-w64-gcc-libs-git
 }
 
-package_mingw-ucrt-w64-x86_64-gcc-git() {
+package_mingw-w64-ucrt-x86_64-gcc-git() {
   package_mingw-w64-gcc-git
 }
 
