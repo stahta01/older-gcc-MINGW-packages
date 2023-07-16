@@ -1,6 +1,9 @@
 # Maintainer:  Tim Stahlhut <stahta01@gmail.com>
 # Contributor: Alexey Pavlov <alexpux@gmail.com>
 
+### Major build options
+_include_sub_folder=  #/${MINGW_CHOST}
+
 _realname=crt
 pkgbase=mingw-w64-${_realname}10-git
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
@@ -83,10 +86,11 @@ build() {
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
   ${srcdir}/mingw-w64/mingw-w64-crt/configure \
-    --prefix=${MINGW_PREFIX} \
+    --prefix=${MINGW_PREFIX}${_include_sub_folder} \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
+    --with-sysroot=${MINGW_PREFIX}${_include_sub_folder} \
     --with-default-msvcrt=${_default_msvcrt} \
     --enable-wildcard \
     --disable-dependency-tracking \
