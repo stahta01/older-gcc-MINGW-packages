@@ -6,18 +6,18 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_enable_bootstrap=no               # Use yes for production
-_enable_threads=no                 # Use yes for production
+_enable_bootstrap=no
+_enable_threads=no
 # When yes, texinfo uninstalled and gcc needs to be installed
-_build_using_external_compiler=yes   # Use no for production
+_build_using_external_compiler=no   # Use no for production
 ### Language build options
 _enable_ada=yes
 _enable_cxx=yes                     # Use yes for production
 ### build options not normally changed
 _threads="posix"                    # Use posix for production
 _enable_libquadmath=no              # Use no for production
-_enable_libgomp=no                 # Use yes for production
-_enable_libstdcxx=no               # Use yes for production
+_enable_libgomp=no
+_enable_libstdcxx=yes               # Use yes for production
 _build_static_only_gcc=no           # Use no for production
 
 # =========================================== #
@@ -45,7 +45,7 @@ pkgname=(
   "${MINGW_PACKAGE_PREFIX}-${_realname}-git" # This package must be first in this list
   $([[ "$_build_static_only_gcc" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
 )
-pkgver=4.5.4+d20120702.r42.c6.g41eccc86828f
+pkgver=4.5.4+d20120702.r42.c7.g41eccc86828f
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1
 else
