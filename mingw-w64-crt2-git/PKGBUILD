@@ -1,0 +1,186 @@
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
+# Contributor: Alexey Pavlov
+
+_include_sub_folder=/${MINGW_CHOST}
+_build_using_external_compiler=yes     # Yes for bootstrap part 1 and 2
+_build_headers_only=no                # Yes for bootstrap part 1
+
+_realname=crt
+_sourcedir=mingw-w64-git
+pkgbase=mingw-w64-${_realname}2-git
+pkgname=($([[ "$_build_headers_only" != "yes" ]] && echo  "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
+         "${MINGW_PACKAGE_PREFIX}-headers-git")
+pkgver=2.0.6.r0.g06c5a4241
+if [[ "$_build_using_external_compiler" == "yes" ]]; then
+  pkgrel=1
+else
+  # 2 build not using ext. compiler
+  pkgrel=2
+fi
+#_commit='24b1f9cdcf1d425700312373b14e2a6e58c6d0aa' # 2.0.0.2777
+#_commit='ea32a0c5bf6f2a2473149d11314f7b92df63cdf4' # 2.0.0.2715 (v2.0.9)
+#_commit='696f2831b313e1be34799aec7cf4fc189d6666d5' # 2.0.0.2684 (v2.0.8)
+#_commit='56b79e1c0757237ea73c0632da4c41bf8c97a630' # 2.0.0.2668 (v2.0.7)
+ _commit='06c5a4241b475e784dbed9c54f7735106ae6d991' # 2.0.0.2656 (v2.0.6)
+#_commit='aab0d078eab2d135c43d8a9453eade13c255244f' # (tag: v2.0.5)
+#_commit='854a72dcb3fdff19464e399a41b75156a839ba78' # (tag: v2.0.4)
+#_commit='1920f0dcafa23b0a7fd2e8a4407fe56989351941' # (tag: v2.0.3)
+#_commit='6ce2e2e42e5c51a82a3a247d35f3e61324a558bf' # (tag: v2.0.2)
+#_commit='6afaf98aa0a41c245075f1f0a13f8e0e68d59b10' # 2.0.0.2598 (v2.0.1) # error: x86intrin.h: No such file or directory
+#_commit='6e5ac49e300a10c1dc4ac474fb1d1891ab5520d3' # (tag: v2.0)
+pkgdesc='MinGW-w64 CRT for Windows'
+arch=('any')
+url='https://mingw-w64.sourceforge.io/'
+license=('custom')
+groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
+makedepends=(
+  "git"
+  $([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-gcc")
+  $([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-binutils")
+)
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+options=('!strip' 'staticlibs' '!buildflags' '!emptydirs')
+source=("${_sourcedir}"::"git+https://git.code.sf.net/p/mingw-w64/mingw-w64#commit=$_commit"
+        002-crt2-Backport-SVN-5819.patch)
+sha256sums=('SKIP'
+            'e9bd159c06f80f5a1c338d0348ba18bb21b8759abf159933a54a29c84299f752')
+
+pkgver() {
+  cd "${srcdir}/${_sourcedir}"
+  git describe --long ${_commit} | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
+}
+
+prepare() {
+  cd "${srcdir}/${_sourcedir}"
+
+  git am --committer-date-is-author-date "${srcdir}"/002-crt2-Backport-SVN-5819.patch || git am --abort
+}
+
+build() {
+  # Set good default FLAGS
+  export LDFLAGS="-pipe"
+  export CPPFLAGS=""
+  export CFLAGS="-pipe"
+  export CXXFLAGS="-pipe"
+
+  if [[ "$_build_using_external_compiler" != "yes" ]]; then
+    if [ "${CARCH}" = "x86_64" ]; then
+      CXXFLAGS+=" -march=nocona -msahf -mtune=generic"
+      CFLAGS+=" -march=nocona -msahf -mtune=generic"
+    else
+      CXXFLAGS+=" -mtune=generic"
+      CFLAGS+=" -mtune=generic"
+    fi
+  else
+    CFLAGS+=" -static -static-libgcc"
+  fi
+
+  if [[ "$_build_using_external_compiler" == "yes" ]]; then
+    # Must build header only package and install it; before building CRT package; otherwise multiple definition errors
+    # GCC 4.1.x from GNAT 2007 builds CRT2 status works
+    # GCC 4.3.4 from GNAT 2009 builds CRT2 status unknown
+    # GCC 4.3.6 from GNAT 2010 builds CRT2 status works
+    # GCC 4.5.3 from GNAT 2011 builds CRT2 status was okay in the past
+    # GCC 4.5.4 from GNAT 2012 builds CRT2 status unknown
+    # GCC 4.7.4 from GNAT 2013 builds CRT2 status retry last failure might have been user error
+    # GCC 4.7.4 from GNAT 2014 builds CRT2 status unknown
+    local _GNAT_year=2007
+    if [ "$_GNAT_year" == "2007" ]; then
+      local _compiler_toolchain_host=pentium-mingw32msv
+    else
+      local _compiler_toolchain_host=i686-pc-mingw32
+    fi
+    local _compiler_toolchain_prefix=/h/GNAT/${_GNAT_year}
+    export PATH=${_compiler_toolchain_prefix}/bin:$PATH
+    if [ "$_GNAT_year" == "2007" ]; then
+      export CFLAGS+=" -std=gnu99" # GNAT GCC 4.1.3 defaults to a too low of std
+    fi
+    export LD="${_compiler_toolchain_prefix}/bin/ld"
+    export CC="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-gcc"
+    if [ "$_GNAT_year" != "2007" ]; then
+      export CXX="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-g++"
+    fi
+    export CXXCPP="${CXX} -E"
+  fi
+  echo "PATH := $PATH"
+  ${CC} --version
+
+  msg "Configuring ${MSYSTEM} headers"
+  [[ -d ${srcdir}/headers-${MSYSTEM} ]] && rm -rf ${srcdir}/headers-${MSYSTEM}
+  mkdir -p ${srcdir}/headers-${MSYSTEM} && cd ${srcdir}/headers-${MSYSTEM}
+
+  ${srcdir}/${_sourcedir}/mingw-w64-headers/configure \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --prefix=${MINGW_PREFIX} \
+    --enable-sdk=all \
+    --enable-secure-api
+
+  msg "Installing local copy of ${MSYSTEM} headers"
+  cd ${srcdir}/headers-${MSYSTEM}
+  rm -fr ${srcdir}${MINGW_PREFIX}${_include_sub_folder}/include
+  make DESTDIR=${srcdir} install
+
+  # create file if it does not exist; update time if it does
+  touch ${srcdir}${MINGW_PREFIX}${_include_sub_folder}/include/x86intrin.h
+
+if [[ "$_build_headers_only" != "yes" ]]; then
+
+  msg "Building ${MSYSTEM} CRT"
+  case "$CARCH" in
+    i686)
+      _crt_configure_args="--disable-lib64 --enable-lib32"
+    ;;
+    x86_64)
+      _crt_configure_args="--disable-lib32 --enable-lib64"
+    ;;
+  esac
+
+  [[ -d ${srcdir}/crt-${MSYSTEM} ]] && rm -rf ${srcdir}/crt-${MSYSTEM}
+  mkdir -p ${srcdir}/crt-${MSYSTEM} && cd ${srcdir}/crt-${MSYSTEM}
+  CFLAGS+=" -I${srcdir}${MINGW_PREFIX}${_include_sub_folder}/include" \
+  ${srcdir}/${_sourcedir}/mingw-w64-crt/configure \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --prefix=${MINGW_PREFIX} \
+    --enable-wildcard \
+    --with-sysroot=${MINGW_PREFIX} \
+    ${_crt_configure_args}
+  make
+fi
+}
+
+package_crt-git() {
+  depends=("${MINGW_PACKAGE_PREFIX}-headers-git")
+
+  msg "Installing ${MSYSTEM} crt"
+  cd ${srcdir}/crt-${MSYSTEM}
+  make DESTDIR=${pkgdir} install-strip
+}
+
+package_headers-git() {
+  pkgdesc="MinGW-w64 headers for Windows"
+  provides=("${MINGW_PACKAGE_PREFIX}-headers")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-headers")
+
+  msg "Copying ${MSYSTEM} headers"
+  mkdir -p ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}
+  cp --recursive ${srcdir}${MINGW_PREFIX}${_include_sub_folder}/include ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}/
+
+  msg "Installing MinGW-w64 licenses"
+  install -Dm644 ${srcdir}/${_sourcedir}/mingw-w64-headers/ddk/readme.txt ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/ddk-readme.txt
+  install -Dm644 ${srcdir}/${_sourcedir}/mingw-w64-headers/direct-x/COPYING.LIB ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/direct-x-COPYING.LIB
+  install -Dm644 ${srcdir}/${_sourcedir}/mingw-w64-headers/direct-x/readme.txt ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/direct-x-readme.txt
+}
+
+# template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
+# vim: set ft=bash :
+
+# generate wrappers
+for _name in "${pkgname[@]}"; do
+  _short="package_${_name#${MINGW_PACKAGE_PREFIX}-}"
+  _func="$(declare -f "${_short}")"
+  eval "${_func/#${_short}/package_${_name}}"
+done
+# template end;
