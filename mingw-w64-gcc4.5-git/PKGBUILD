@@ -7,7 +7,7 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no
-_enable_threads=no
+_enable_threads=yes
 # When yes, texinfo uninstalled and gcc needs to be installed
 _build_using_external_compiler=no   # Use no for production
 ### Language build options
