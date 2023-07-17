@@ -14,7 +14,7 @@ _build_using_external_compiler=no   # Use no for production
 _enable_ada=yes
 _enable_cxx=yes                     # Use yes for production
 ### build options not normally changed
-_threads="posix"                    # Use posix for production
+_threads="win32"                    # posix failed to work; it was added in GCC 4.7
 _enable_libquadmath=no              # Use no for production
 _enable_libgomp=no
 _enable_libstdcxx=yes               # Use yes for production
@@ -50,7 +50,8 @@ if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1
 else
   # 2 non-static build not using ext. compiler
-  pkgrel=2
+  # 3 _enable_threads=yes
+  pkgrel=3
 fi
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
@@ -69,7 +70,6 @@ makedepends=($([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
              "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
-             $([[ "$_enable_threads" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-winpthreads")
              #$([[ "$_build_using_external_compiler" != "yes" ]] && echo "texinfo")
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
