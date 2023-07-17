@@ -2,7 +2,7 @@
 # Contributor: Alexey Pavlov
 
 _include_sub_folder=/${MINGW_CHOST}
-_build_using_external_compiler=yes     # Yes for bootstrap part 1 and 2
+_build_using_external_compiler=no     # Yes for bootstrap part 1 and 2
 _build_headers_only=no                # Yes for bootstrap part 1
 
 _realname=crt
