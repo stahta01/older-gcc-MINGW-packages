@@ -44,7 +44,7 @@ pkgname=(
   "${MINGW_PACKAGE_PREFIX}-${_realname}-git" # This package must be first in this list
   $([[ "$_build_static_only_gcc" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
 )
-pkgver=4.2.5+d20090330.r0.c4.g87bf6ca58e51
+pkgver=4.2.5+d20090330.r0.c3.g87bf6ca58e51
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1
 else
