@@ -8,7 +8,7 @@
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=yes    # Use yes for production
 ### Language build options
-_enable_ada=no
+_enable_ada=yes
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
@@ -17,6 +17,10 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 
 # =========================================== #
+if [[ $MSYSTEM != MINGW32 && "$_enable_ada" == "yes" ]]; then
+  _enable_ada=no
+  warning "Currently only MINGW32 builds Ada; so, Ada was disabled"
+fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
   _enable_libgomp=no
   warning "UCRT fails to build libgomp; so, libgomp was disabled"
@@ -33,8 +37,8 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git"
          $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran-git")
          $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran-git")
-         $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
-         $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
+         $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
+         $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
         )
 pkgver=5.5.0+d20171010.r1.c17.g926d9947847a
 pkgrel=1
