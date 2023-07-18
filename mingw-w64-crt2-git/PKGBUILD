@@ -12,10 +12,11 @@ pkgname=($([[ "$_build_headers_only" != "yes" ]] && echo  "${MINGW_PACKAGE_PREFI
          "${MINGW_PACKAGE_PREFIX}-headers-git")
 pkgver=2.0.6.r0.g06c5a4241
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
-  pkgrel=1
+  pkgrel=1 # Build using 2007 GNAT GCC 4.1
 else
-  # 2 build not using ext. compiler
-  pkgrel=2
+  pkgrel=2 # Build using GCC 4.2
+  #pkgrel=3 # Build using GCC 4.3
+  #pkgrel=5 # Build using GCC 4.5
 fi
 #_commit='24b1f9cdcf1d425700312373b14e2a6e58c6d0aa' # 2.0.0.2777
 #_commit='ea32a0c5bf6f2a2473149d11314f7b92df63cdf4' # 2.0.0.2715 (v2.0.9)
