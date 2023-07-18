@@ -8,7 +8,7 @@
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no
 _enable_threads=no
-_build_using_external_compiler=no   # Use no for production
+_build_using_external_compiler=yes
 ### Language build options
 _enable_ada=no
 _enable_cxx=no
