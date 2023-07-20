@@ -49,9 +49,11 @@ pkgver=4.5.4+d20120702.r42.c7.g41eccc86828f
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1
 else
-  # 2 non-static build not using ext. compiler
-  # 3 _enable_threads=yes
-  pkgrel=3
+  # 2 _build_using_external_compiler=no
+  # 3 and _build_static_only_gcc=no 
+  # 4 and _enable_threads=yes
+  # 5 and _enable_cxx=yes
+  pkgrel=5 # _enable_cxx=yes
 fi
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
