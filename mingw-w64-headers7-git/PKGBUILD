@@ -2,7 +2,7 @@
 # Contributor: Alexey Pavlov <alexpux@gmail.com>
 
 ### Major build options
-_include_sub_folder=  #/${MINGW_CHOST}
+_include_sub_folder=/${MINGW_CHOST}
 
 _realname=headers
 pkgbase=mingw-w64-${_realname}-git
