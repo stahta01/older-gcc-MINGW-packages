@@ -6,11 +6,11 @@
 # Contributor: Liu Hao <lh_mouse@126.com>
 
 ### Major build options
-_include_sub_folder=       #/${MINGW_CHOST}
-_enable_bootstrap=no    # Use yes for production
+_include_sub_folder=/${MINGW_CHOST}
+_enable_bootstrap=yes    # Use yes for production
 ### Language build options
 _enable_fortran=no
-_enable_ada=no
+_enable_ada=yes
 _enable_objc=no
 # build options not normally changed
 _threads="posix"         # Use posix for production
@@ -18,6 +18,10 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes
 
 # =========================================== #
+if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
+  _enable_ada=no
+  warning "Currently UCRT64 cannot build Ada; so, Ada was disabled"
+fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
   _enable_libgomp=no
   warning "UCRT fails to build libgomp; so, libgomp was disabled"
