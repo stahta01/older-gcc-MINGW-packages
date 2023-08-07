@@ -16,7 +16,7 @@ _enable_objc=no
 # build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
-_enable_bootada=no       # Use no for production
+_enable_bootada=no       # Use no for production Uses MINGW64 to build UCRT64 Ada
 _enable_libgomp=no      # Use yes for production
 _enable_isl=no          # Use yes for production
 _enable_plugin=no       # Use yes for production
