@@ -29,4 +29,4 @@ cp -f ./mingw-w64-winpthreads7-git/mingw-w64-ucrt-x86_64-libwinpthread-git-7.0.0
 cp -f ./mingw-w64-winpthreads7-git/mingw-w64-ucrt-x86_64-winpthreads-git-7.0.0.r5.gb7f51b148-1-any.pkg.tar.zst ./packages/gcc8.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc8-git/mingw-w64-ucrt-x86_64-gcc-libs-git-8.5.0+d20210514.r1.c12.geafe83f2f20e-1-any.pkg.tar.zst ./packages/gcc8.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc8-git/mingw-w64-ucrt-x86_64-gcc-git-8.5.0+d20210514.r1.c12.geafe83f2f20e-1-any.pkg.tar.zst ./packages/gcc8.5.0_toolchain_mingw_UCRT64_packages/
-#cp -f ./mingw-w64-gcc8-git/mingw-w64-ucrt-x86_64-gcc-ada-git-8.5.0+d20210514.r1.c12.geafe83f2f20e-1-any.pkg.tar.zst ./packages/gcc8.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-gcc8-git/mingw-w64-ucrt-x86_64-gcc-ada-git-8.5.0+d20210514.r1.c12.geafe83f2f20e-1-any.pkg.tar.zst ./packages/gcc8.5.0_toolchain_mingw_UCRT64_packages/
