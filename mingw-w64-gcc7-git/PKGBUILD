@@ -4,14 +4,13 @@
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 # Contributor: Liu Hao <lh_mouse@126.com>
-# Contributor: Tim Stahlhut <stahta01@gmail.com>
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_enable_bootstrap=yes    # Use yes for production
+_enable_bootstrap=no               # Use yes for production
 ### Language build options
 _enable_fortran=no
-_enable_ada=no
+_enable_ada=yes
 _enable_objc=no
 # LTO means link time optimization
 _enable_lto=yes          # Use yes for production 
@@ -21,6 +20,7 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 _enable_isl=yes          # Use yes for production
 _enable_plugin=yes       # Use yes for production
+_enable_backstrapada=no  # Use no for production
 
 # =========================================== #
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
@@ -44,7 +44,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
         )
 pkgver=7.5.0+d20191114.r1.c15.gb2d961e7342b
-pkgrel=1
+pkgrel=2
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="https://gcc.gnu.org"
@@ -92,7 +92,8 @@ source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=${_bran
         "0017-gcc-7.4-Enable-std-experimental-filesystem.patch"
         "0018-gcc-7-branch-Enable-a-native-GCC-to-color-diagnostic-messages-sen.patch"
         "0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch"
-        '0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch')
+        '0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch'
+        '902-Ada-build-fix-for-GCC-8-building-GCC-7.patch')
 sha256sums=('SKIP'
             '83e9c6f76f728ae3e2f2eabb588b0d6cea7a3eda03cd5e77aed9d613143b7348'
             '6033acda690786397059536787a6577e1a9f2b39f8a66276821917066094f43c'
@@ -108,7 +109,8 @@ sha256sums=('SKIP'
             '3e9432c1ea0349e2436fb4bc8f5b23bc8b4ff0e548f18c2c736eae3ce73e00eb'
             '33392651e17b81609718873ff32606deee5f3fc5176c197bb96eedc3dada8912'
             '2331365b6d42250d83eba36a1ef1a02e56b81a7c2595df6a43cb1a6abbcb99f0'
-            '8c72f2cf3a53603fd0ab4ff48ff7450330964786b09ed38c8ff1b6bcf2ad223d')
+            '8c72f2cf3a53603fd0ab4ff48ff7450330964786b09ed38c8ff1b6bcf2ad223d'
+            '0ce6f7597b0e1800cce13df9520ab084fb99c2c221c3934a989f3b6175b3618c')
 # =========================================== #
 # Helper macros to help make tasks easier     #
 del_file_exists() {
@@ -167,6 +169,13 @@ build() {
   export CXXFLAGS="-pipe"
 
   cd ${srcdir}/${_sourcedir}
+
+  git restore gcc/ada/s-parame.ads
+  git restore gcc/ada/s-secsta.adb
+  git restore gcc/ada/s-secsta.ads
+  if [[ "$_enable_ada" == "yes" && "$_enable_backstrapada" == "yes" ]]; then
+    git apply ${srcdir}/902-Ada-build-fix-for-GCC-8-building-GCC-7.patch
+  fi
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
