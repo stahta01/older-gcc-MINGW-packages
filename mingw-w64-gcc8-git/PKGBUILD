@@ -4,7 +4,6 @@
 # Contributor: Alexey Borzenkov <snaury@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 # Contributor: Liu Hao <lh_mouse@126.com>
-# Contributor: Tim Stahlhut <stahta01@gmail.com>
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
@@ -17,6 +16,7 @@ _enable_objc=no
 # build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
+_enable_bootada=no       # Use no for production
 _enable_libgomp=no      # Use yes for production
 _enable_isl=no          # Use yes for production
 _enable_plugin=no       # Use yes for production
@@ -26,10 +26,10 @@ if [[ $MSYSTEM != MINGW64 && "$_build_using_external_compiler" == "yes" ]]; then
   _build_using_external_compiler=no
   warning "Currently MINGW32 and UCRT64 cannot use _build_using_external_compiler=yes"
 fi
-if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
-  _enable_ada=no
-  warning "Currently UCRT64 cannot build Ada; so, Ada was disabled"
-fi
+#if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
+  #_enable_bootada=yes
+  #warning "Enable Boot Strap Ada"
+#fi
 #if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
   #_enable_bootstrap=yes
 #fi
@@ -56,9 +56,9 @@ arch=('any')
 url="https://gcc.gnu.org"
 license=('GPL' 'LGPL' 'FDL' 'custom')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
-makedepends=($([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}")
-             $([[ "$_enable_ada" == "yes" && \
-                 "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+makedepends=($( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bootada" != "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}")
+             $( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bootada" != "yes" ] && [ "$_enable_ada" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+             $( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bootada" == "yes" ] && [ "$_enable_ada" == "yes" ] && echo "mingw-w64-x86_64-${_realname}-ada")
              "${MINGW_PACKAGE_PREFIX}-binutils"
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
@@ -154,6 +154,14 @@ prepare() {
 build() {
   cd ${srcdir}/${_sourcedir}
 
+  git restore gcc/ada/Make-generated.in
+  git restore gcc/ada/gcc-interface/Makefile.in
+  if [[ "$_enable_bootada" == "yes" ]]; then
+    # replace gnatmake with $(GNATMAKE) safest way I found to bootstrap Ada
+    sed -i 's| gnatmake | $(GNATMAKE) |g' gcc/ada/Make-generated.in
+    sed -i 's|(cd ./bldtools/oscons ; gnatmake -q xoscons)|(cd ./bldtools/oscons ; $(GNATMAKE) -q xoscons)|g' gcc/ada/gcc-interface/Makefile.in
+  fi
+
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
   git restore configure
@@ -212,6 +220,14 @@ build() {
     extra_config+=('--enable-plugin')
   else
     extra_config+=('--disable-plugin')
+  fi
+
+  declare -a configure_building_opts
+  if [[ "$_enable_bootada" == "yes" ]]; then
+    configure_building_opts+=(CC='/mingw64/bin/gcc.exe -mcrtdll=ucrt -D_UCRT')
+    configure_building_opts+=(CXX='/mingw64/bin/g++.exe -mcrtdll=ucrt -D_UCRT')
+    configure_building_opts+=(GNATBIND='/mingw64/bin/gnatbind.exe')
+    configure_building_opts+=(GNATMAKE='/mingw64/bin/gnatmake.exe')
   fi
 
   case "${CARCH}" in
@@ -278,6 +294,7 @@ build() {
     --target=${MINGW_CHOST} \
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
+    "${configure_building_opts[@]}" \
     --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
