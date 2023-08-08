@@ -7,6 +7,7 @@ cp -f ./mingw-w64-winpthreads6-git/mingw-w64-x86_64-libwinpthread-git-6.0.0.r56.
 cp -f ./mingw-w64-winpthreads6-git/mingw-w64-x86_64-winpthreads-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc6-git/mingw-w64-x86_64-gcc-libs-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc6-git/mingw-w64-x86_64-gcc-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_64_packages/
+cp -f ./mingw-w64-gcc6-git/mingw-w64-x86_64-gcc-ada-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_64_packages/
 
 mkdir -p packages/gcc6.5.0_toolchain_mingw_32_packages
 
@@ -28,3 +29,4 @@ cp -f ./mingw-w64-winpthreads6-git/mingw-w64-ucrt-x86_64-libwinpthread-git-6.0.0
 cp -f ./mingw-w64-winpthreads6-git/mingw-w64-ucrt-x86_64-winpthreads-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc6-git/mingw-w64-ucrt-x86_64-gcc-libs-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc6-git/mingw-w64-ucrt-x86_64-gcc-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-gcc6-git/mingw-w64-ucrt-x86_64-gcc-ada-git-6.5.0+d20181026.r2.c13.g39a300fd08a8-1-any.pkg.tar.zst ./packages/gcc6.5.0_toolchain_mingw_UCRT64_packages/
