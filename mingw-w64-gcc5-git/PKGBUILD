@@ -62,7 +62,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
-options=('staticlibs' '!emptydirs' '!strip' 'debug')
+#options=('staticlibs' '!emptydirs' '!strip' 'debug')
+options=('staticlibs' '!emptydirs' 'strip' '!debug')
 _branch=releases/gcc-5
 
 source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
