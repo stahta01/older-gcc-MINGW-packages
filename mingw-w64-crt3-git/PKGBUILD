@@ -3,7 +3,15 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_build_using_external_compiler=no
+_build_using_external_compiler=yes   # Use no for production
+
+# =========================================== #
+if [[ $MSYSTEM != MINGW64 && "$_build_using_external_compiler" == "yes" ]]; then
+  _build_using_external_compiler=no
+  # This package does not work under UCRT64; because default with-default-msvcrt is missing.
+  warning "Currently MINGW32 and UCRT64 cannot use _build_using_external_compiler=yes"
+fi
+# =========================================== #
 
 _realname=crt
 pkgbase=mingw-w64-${_realname}3-git
@@ -33,7 +41,7 @@ license=('custom')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
 depends=("${MINGW_PACKAGE_PREFIX}-headers-git")
 makedepends=("git"
-             "${MINGW_PACKAGE_PREFIX}-gcc"
+             $( [ "$_build_using_external_compiler" != "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}")
              "${MINGW_PACKAGE_PREFIX}-binutils")
 provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
@@ -66,14 +74,13 @@ build() {
   esac
 
   if [[ "$_build_using_external_compiler" == "yes" ]]; then
-    local _ext_compiler=/h/GNAT/2007
-    #local _ext_compiler=/h/GNAT/2013
-    export PATH=${_ext_compiler}/bin:$PATH
-    export CC="${_ext_compiler}/bin/gcc"
-    export CXX="${_ext_compiler}/bin/g++"
-    export LD="${_ext_compiler}/bin/ld"
-    export GNATMAKE="${_ext_compiler}/bin/gnatmake"
-    export GNATBIND="${_ext_compiler}/bin/gnatbind"
+    local _GNAT_year=2018
+    local _compiler_toolchain_host=x86_64-pc-mingw32
+    local _compiler_toolchain_prefix=/h/GNAT/${_GNAT_year}
+    # Try to use normal binutils commands and static GCC libs
+    export CC="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-gcc -static-libgcc -static"
+    export CXX="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-g++ -static-libstdc++ -static"
+    export CXXCPP="${CXX} -E"
   fi
   echo "PATH := $PATH"
 
