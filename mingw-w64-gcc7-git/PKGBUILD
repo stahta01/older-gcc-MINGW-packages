@@ -373,7 +373,6 @@ package_mingw-w64-gcc-git() {
   depends=("${MINGW_PACKAGE_PREFIX}-binutils"
            "${MINGW_PACKAGE_PREFIX}-crt"
            "${MINGW_PACKAGE_PREFIX}-headers"
-           $([[ "$_enable_isl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-isl")
            "${MINGW_PACKAGE_PREFIX}-libiconv"
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
@@ -382,6 +381,9 @@ package_mingw-w64-gcc-git() {
            "${MINGW_PACKAGE_PREFIX}-zlib")
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  if [[ "$_enable_isl" == "yes" ]]; then
+    depends+=("${MINGW_PACKAGE_PREFIX}-isl")
+  fi
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,include,lib,share}
 
