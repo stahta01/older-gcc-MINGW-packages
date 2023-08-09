@@ -14,7 +14,7 @@ _enable_fortran=no
 _enable_ada=yes
 _enable_objc=no
 # LTO means link time optimization
-_enable_lto=yes          # Use yes for production 
+_enable_lto=yes          # Use yes for production
 ### build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
