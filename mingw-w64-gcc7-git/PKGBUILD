@@ -19,7 +19,7 @@ _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 _enable_isl=yes          # Use yes for production
-_enable_plugin=yes       # Use yes for production
+_enable_plugin=no        # Yes gives an error under UCRT64
 _enable_backstrapada=no  # Use no for production
 
 # =========================================== #
