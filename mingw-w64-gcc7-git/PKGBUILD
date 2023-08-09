@@ -56,7 +56,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
              "${MINGW_PACKAGE_PREFIX}-gmp"
-             "${MINGW_PACKAGE_PREFIX}-isl"
+             $([[ "$_enable_isl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-isl")
              "${MINGW_PACKAGE_PREFIX}-libiconv"
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
@@ -373,7 +373,7 @@ package_mingw-w64-gcc-git() {
   depends=("${MINGW_PACKAGE_PREFIX}-binutils"
            "${MINGW_PACKAGE_PREFIX}-crt"
            "${MINGW_PACKAGE_PREFIX}-headers"
-           "${MINGW_PACKAGE_PREFIX}-isl"
+           $([[ "$_enable_isl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-isl")
            "${MINGW_PACKAGE_PREFIX}-libiconv"
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
