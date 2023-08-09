@@ -8,6 +8,7 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no               # Use yes for production
+_enable_isl=no
 ### Language build options
 _enable_fortran=no
 _enable_ada=yes
@@ -18,7 +19,6 @@ _enable_lto=yes          # Use yes for production
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
-_enable_isl=yes          # Use yes for production
 _enable_plugin=no        # Yes gives an error under UCRT64
 _enable_backstrapada=no  # Use no for production
 
