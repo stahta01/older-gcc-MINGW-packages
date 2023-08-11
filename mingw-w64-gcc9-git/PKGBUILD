@@ -7,7 +7,8 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_enable_bootstrap=yes    # Use yes for production
+_enable_bootstrap=no    # Use yes for production
+_enable_isl=no
 ### Language build options
 _enable_fortran=no
 _enable_ada=yes
@@ -18,17 +19,9 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes
 
 # =========================================== #
-if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
-  _enable_ada=no
-  warning "Currently UCRT64 cannot build Ada; so, Ada was disabled"
-fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
   _enable_libgomp=no
   warning "UCRT fails to build libgomp; so, libgomp was disabled"
-fi
-if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
-  _enable_bootstrap=yes
-  warning "UCRT requires bootstrap to build"
 fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
   warning "when building FORTRAN; libquadmath is enabled"
@@ -59,7 +52,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
              "${MINGW_PACKAGE_PREFIX}-gmp"
-             "${MINGW_PACKAGE_PREFIX}-isl"
+             $([[ "$_enable_isl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-isl")
              "${MINGW_PACKAGE_PREFIX}-libiconv"
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
@@ -172,6 +165,15 @@ build() {
   elif [ "$_enable_libgomp" == "no" ]; then
     extra_config+=("--disable-libgomp")
   fi
+  #
+  if [ "$_enable_isl" == "yes" ]; then
+    extra_config+=('--disable-isl-version-check')
+    extra_config+=("--with-isl=${MINGW_PREFIX}")
+    extra_config+=('--enable-graphite')
+  else
+    extra_config+=('--without-isl')
+    extra_config+=('--disable-graphite')
+  fi
 
   case "${CARCH}" in
     i686)
@@ -218,13 +220,11 @@ build() {
     --enable-shared --enable-static \
     --enable-libatomic \
     --enable-threads=${_threads} \
-    --enable-graphite \
     --enable-fully-dynamic-string \
     --enable-libstdcxx-time=yes \
     --disable-libstdcxx-pch \
     --disable-libstdcxx-debug \
     --enable-libstdcxx-filesystem-ts=yes \
-    --disable-isl-version-check \
     "${extra_config[@]}" \
     --enable-lto \
     --disable-multilib \
@@ -236,7 +236,7 @@ build() {
     --disable-symvers \
     --with-libiconv \
     --with-system-zlib \
-    --with-{gmp,mpfr,mpc,isl}=${MINGW_PREFIX} \
+    --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
     --with-gnu-as --with-gnu-ld \
@@ -311,13 +311,15 @@ package_mingw-w64-gcc-git() {
   depends=("${MINGW_PACKAGE_PREFIX}-binutils"
            "${MINGW_PACKAGE_PREFIX}-crt"
            "${MINGW_PACKAGE_PREFIX}-headers"
-           "${MINGW_PACKAGE_PREFIX}-isl"
            "${MINGW_PACKAGE_PREFIX}-libiconv"
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
            "${MINGW_PACKAGE_PREFIX}-winpthreads"
            "${MINGW_PACKAGE_PREFIX}-zlib")
+  if [[ "$_enable_isl" == "yes" ]]; then
+    depends+=("${MINGW_PACKAGE_PREFIX}-isl")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 
