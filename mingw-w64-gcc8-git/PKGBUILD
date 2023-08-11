@@ -8,6 +8,7 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no               # Use yes for production
+_enable_isl=no                     # Use yes for production
 _build_using_external_compiler=no   # Use no for production
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
 options=('staticlibs' '!emptydirs' 'strip' '!debug')
@@ -19,22 +20,18 @@ _enable_objc=no
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
 _enable_bootada=no       # Use no for production Uses MINGW64 to build UCRT64 Ada
-_enable_libgomp=no      # Use yes for production
-_enable_isl=no          # Use yes for production
-_enable_plugin=no       # Use yes for production
+_enable_libgomp=yes      # Use yes for production
+_enable_plugin=yes       # Use yes for production
 
 # =========================================== #
 if [[ $MSYSTEM != MINGW64 && "$_build_using_external_compiler" == "yes" ]]; then
   _build_using_external_compiler=no
   warning "Currently MINGW32 and UCRT64 cannot use _build_using_external_compiler=yes"
 fi
-#if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
-  #_enable_bootada=yes
-  #warning "Enable Boot Strap Ada"
-#fi
-#if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_bootstrap" != "yes" ]]; then
-  #_enable_bootstrap=yes
-#fi
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "UCRT fails to build libgomp; so, libgomp was disabled"
+fi
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
    warning "when building FORTRAN; libquadmath is enabled"
   _enable_libquadmath=yes
