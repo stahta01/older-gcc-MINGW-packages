@@ -29,3 +29,4 @@ cp -f ./mingw-w64-winpthreads8-git/mingw-w64-ucrt-x86_64-libwinpthread-git-8.0.2
 cp -f ./mingw-w64-winpthreads8-git/mingw-w64-ucrt-x86_64-winpthreads-git-8.0.2.r0.g368175526-1-any.pkg.tar.zst ./packages/gcc9.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc9-git/mingw-w64-ucrt-x86_64-gcc-libs-git-9.5.0+d20220527.r2.c11.g7a15b5060a83-1-any.pkg.tar.zst ./packages/gcc9.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc9-git/mingw-w64-ucrt-x86_64-gcc-git-9.5.0+d20220527.r2.c11.g7a15b5060a83-1-any.pkg.tar.zst ./packages/gcc9.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-gcc9-git/mingw-w64-ucrt-x86_64-gcc-ada-git-9.5.0+d20220527.r2.c11.g7a15b5060a83-1-any.pkg.tar.zst ./packages/gcc9.5.0_toolchain_mingw_UCRT64_packages/
