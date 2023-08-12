@@ -8,8 +8,8 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no               # Use yes for production
-_enable_isl=no                     # Use yes for production
 _build_using_external_compiler=no   # Use no for production
+_enable_isl=no
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
 options=('staticlibs' '!emptydirs' 'strip' '!debug')
 ### Language build options
@@ -62,7 +62,7 @@ makedepends=($( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bo
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
              "${MINGW_PACKAGE_PREFIX}-gmp"
-             "${MINGW_PACKAGE_PREFIX}-isl"
+             $([[ "$_enable_isl" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-isl")
              "${MINGW_PACKAGE_PREFIX}-libiconv"
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
@@ -389,13 +389,15 @@ package_mingw-w64-gcc-git() {
   depends=("${MINGW_PACKAGE_PREFIX}-binutils"
            "${MINGW_PACKAGE_PREFIX}-crt"
            "${MINGW_PACKAGE_PREFIX}-headers"
-           "${MINGW_PACKAGE_PREFIX}-isl"
            "${MINGW_PACKAGE_PREFIX}-libiconv"
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
            "${MINGW_PACKAGE_PREFIX}-winpthreads"
            "${MINGW_PACKAGE_PREFIX}-zlib")
+  if [[ "$_enable_isl" == "yes" ]]; then
+    depends+=("${MINGW_PACKAGE_PREFIX}-isl")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 
