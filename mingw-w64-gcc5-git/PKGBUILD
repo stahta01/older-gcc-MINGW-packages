@@ -19,10 +19,6 @@ _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 
 # =========================================== #
-#if [[ $MSYSTEM != MINGW32 && "$_enable_ada" == "yes" ]]; then
-  #_enable_ada=no
-  #warning "Currently only MINGW32 builds Ada; so, Ada was disabled"
-#fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
   _enable_libgomp=no
   warning "UCRT fails to build libgomp; so, libgomp was disabled"
@@ -280,12 +276,12 @@ build() {
     #--enable-libitm
     #--enable-objc-gc
 
-  # While we're debugging -fopenmp problems at least.
-  # .. we may as well not strip anything.
-  if check_option "strip" "n"; then
-    sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
-    sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
-  fi
+  ## While we're debugging -fopenmp problems at least.
+  ## .. we may as well not strip anything.
+  #if check_option "strip" "n"; then
+    #sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
+    #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
+  #fi
 
   make all # || make all V=1 -j1
 
