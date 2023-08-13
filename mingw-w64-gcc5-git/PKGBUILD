@@ -7,6 +7,8 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=yes    # Use yes for production
+#options=('staticlibs' '!emptydirs' '!strip' 'debug')
+options=('staticlibs' '!emptydirs' 'strip' '!debug')
 ### Language build options
 _enable_ada=yes
 _enable_fortran=no
@@ -62,8 +64,6 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
-#options=('staticlibs' '!emptydirs' '!strip' 'debug')
-options=('staticlibs' '!emptydirs' 'strip' '!debug')
 _branch=releases/gcc-5
 
 source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
