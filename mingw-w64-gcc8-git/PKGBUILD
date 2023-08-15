@@ -13,15 +13,15 @@ _enable_isl=no
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
 options=('staticlibs' '!emptydirs' 'strip' '!debug')
 ### Language build options
-_enable_fortran=no
 _enable_ada=yes
+_enable_fortran=no
 _enable_objc=no
 # build options not normally changed
-_threads="posix"         # Use posix for production
-_enable_libquadmath=no   # Use no for production
-_enable_bootada=no       # Use no for production Uses MINGW64 to build UCRT64 Ada
-_enable_libgomp=yes      # Use yes for production
-_enable_plugin=yes       # Use yes for production
+_threads="win32"                # Use posix for production; and, win32 for development
+_enable_libquadmath=no          # Use no for production
+_enable_bootada=no              # Use no for production Uses MINGW64 to build UCRT64 Ada
+_enable_libgomp=yes             # Use yes for production
+_enable_plugin=yes              # Use yes for production
 
 # =========================================== #
 if [[ $MSYSTEM != MINGW64 && "$_build_using_external_compiler" == "yes" ]]; then
@@ -67,7 +67,7 @@ makedepends=($( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bo
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
              "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
-             "${MINGW_PACKAGE_PREFIX}-winpthreads"
+             $([[ "$_threads" == "posix" ]] && echo "${MINGW_PACKAGE_PREFIX}-winpthreads") 
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
@@ -177,13 +177,8 @@ build() {
   # Replace the MSys2 default FLAG values
   export LDFLAGS="-pipe"
   export CPPFLAGS=""
-  if [[ "$_enable_static_gcc" == "yes" ]]; then
-    export CFLAGS="-pipe -static-libgcc -static-libstdc++ -static"
-    export CXXFLAGS="-pipe -static-libgcc -static-libstdc++ -static"
-  else
-    export CFLAGS="-pipe"
-    export CXXFLAGS="-pipe"
-  fi
+  export CFLAGS="-pipe"
+  export CXXFLAGS="-pipe"
 
   declare -a extra_config
   if [[ "$_enable_libquadmath" != "yes" ]]; then
@@ -325,12 +320,12 @@ build() {
     #--with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
     #--enable-version-specific-runtime-libs \
 
-  # While we're debugging -fopenmp problems at least.
-  # .. we may as well not strip anything.
-  if check_option "strip" "n"; then
-    sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
-    sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
-  fi
+  ## While we're debugging -fopenmp problems at least.
+  ## .. we may as well not strip anything.
+  #if check_option "strip" "n"; then
+    #sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
+    #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
+  #fi
 
   make all # -j1 # || make all V=1 -j1
 
@@ -346,8 +341,10 @@ package_mingw-w64-gcc-libs-git() {
   pkgdesc="GNU Compiler Collection (libraries) for MinGW-w64"
   depends=("${MINGW_PACKAGE_PREFIX}-gmp"
            "${MINGW_PACKAGE_PREFIX}-mpc"
-           "${MINGW_PACKAGE_PREFIX}-mpfr"
-           "${MINGW_PACKAGE_PREFIX}-libwinpthread")
+           "${MINGW_PACKAGE_PREFIX}-mpfr")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
 
@@ -393,8 +390,10 @@ package_mingw-w64-gcc-git() {
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
-           "${MINGW_PACKAGE_PREFIX}-winpthreads"
            "${MINGW_PACKAGE_PREFIX}-zlib")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
+  fi
   if [[ "$_enable_isl" == "yes" ]]; then
     depends+=("${MINGW_PACKAGE_PREFIX}-isl")
   fi
