@@ -3,6 +3,7 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
+_build_using_external_compiler=no
 
 _realname=crt
 pkgbase=mingw-w64-${_realname}5-git
@@ -10,7 +11,7 @@ pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-svn")
 pkgver=5.0.4.r16.g715ecca90
 pkgrel=1
-_commit='715ecca90d57f240ea68561e95bfe3ce7e912202'
+_commit='715ecca90d57f240ea68561e95bfe3ce7e912202' # 5.0.4.r16.g715ecca90
 pkgdesc='MinGW-w64 CRT for Windows'
 arch=('any')
 url='https://mingw-w64.sourceforge.io/'
@@ -49,6 +50,14 @@ build() {
       _crt_configure_args="--disable-lib32 --enable-lib64"
     ;;
   esac
+
+  if [[ "$_build_using_external_compiler" == "yes" ]]; then
+    local _ext_compiler=/h/GNAT/2018
+    export CC="${_ext_compiler}/bin/gcc"
+    export CXX="${_ext_compiler}/bin/g++"
+    export LD="${_ext_compiler}/bin/ld"
+  fi
+  echo "PATH := $PATH"
 
   [[ -d ${srcdir}/crt-${MSYSTEM} ]] && rm -rf ${srcdir}/crt-${MSYSTEM}
   mkdir -p ${srcdir}/crt-${MSYSTEM} && cd ${srcdir}/crt-${MSYSTEM}
