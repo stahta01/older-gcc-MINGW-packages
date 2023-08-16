@@ -12,7 +12,7 @@ _enable_ada=yes
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
-_threads="posix"         # Use posix for production; and, win32 for development
+_threads="win32"         # Use posix for production; and, win32 for development
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 _enable_backstrapada=no  # Use no for production
