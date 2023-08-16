@@ -6,18 +6,21 @@
 
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
-_enable_bootstrap=no    # Use yes for production
+_enable_bootstrap=no           # Use yes for production
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
 options=('staticlibs' '!emptydirs' 'strip' '!debug')
+_use_intree_gmp_mpfr_mpc=no     # yes had build error under MINGW64 GCC 5 and CRT 6
 ### Language build options
-_enable_ada=yes          # Use yes for production
+_enable_ada=yes                 # Use yes for production
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
-_threads="posix"         # Use posix for production
-_enable_libquadmath=no   # Use no for production
-_enable_libgomp=yes      # Use yes for production
-_enable_backstrapada=no  # Use no for production
+_threads="win32"                # Use posix for production; and, win32 for development
+_enable_libquadmath=no          # Use no for production
+_enable_libgomp=yes             # Use yes for production
+_enable_backstrapada=no         # Use no for production
+#_try_to_use_static_libs=no      # Use no for production; yes had mpfr build errors
+_enable_gcc_shared=yes          # Use yes for production
 
 # =========================================== #
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
@@ -33,15 +36,16 @@ fi
 _realname=gcc
 pkgbase=mingw-w64-${_realname}4.9
 pkgname=(
-        "${MINGW_PACKAGE_PREFIX}-${_realname}"
-        "${MINGW_PACKAGE_PREFIX}-${_realname}-libs"
-         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
-         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
-         $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
-         $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
-        )
+  "${MINGW_PACKAGE_PREFIX}-${_realname}"
+  $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+  $( [ "$_enable_gcc_shared" == "yes" ] && [ "$_enable_fortran" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
+  $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
+  $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+  $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
+)
 pkgver=4.9.2
 pkgrel=7
+_sourcedir=${_realname}-${pkgver}
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="http://gcc.gnu.org"
@@ -51,15 +55,31 @@ depends=($([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_rea
          "${MINGW_PACKAGE_PREFIX}-binutils"
          "${MINGW_PACKAGE_PREFIX}-crt"
          "${MINGW_PACKAGE_PREFIX}-headers"
-         "${MINGW_PACKAGE_PREFIX}-winpthreads"
          "${MINGW_PACKAGE_PREFIX}-mpc"
          #"${MINGW_PACKAGE_PREFIX}-cloog"
          "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
          "${MINGW_PACKAGE_PREFIX}-zlib")
-makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}" 'lndir')
+makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+             $([[ "$_threads" == "posix" ]] && echo "${MINGW_PACKAGE_PREFIX}-winpthreads") 
+             'lndir')
 #checkdepends=('dejagnu')
 optdepends=()
-source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver%%+*}/${_realname}-${pkgver%%+*}.tar.bz2"
+CLOOG_VERSION=0.18.1
+ISL_VERSION=0.16.1
+MPFR_VERSION=3.1.6
+GMP_VERSION=5.1.3
+MPC_VERSION=1.1.0
+noextract=("isl-${ISL_VERSION}.tar.bz2" "mpfr-${MPFR_VERSION}.tar.bz2"
+           "cloog-${CLOOG_VERSION}.tar.gz"
+           "gmp-${GMP_VERSION}.tar.xz" "mpc-${MPC_VERSION}.tar.gz")
+# commit 4f18db57daffc62a373e30d93c9552f2b94adf09 (HEAD -> releases/gcc-4.9)
+# commit c8be0366b55cdb3233abcf79abe2c5ddc6f82cb9 (tag: releases/gcc-4.9.2)
+source=(https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.bz2
+        ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-${CLOOG_VERSION}.tar.gz
+        ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-${MPFR_VERSION}.tar.bz2
+        https://gmplib.org/download/gmp-${GMP_VERSION}/gmp-${GMP_VERSION}.tar.xz
+        https://ftp.gnu.org/gnu/mpc/mpc-${MPC_VERSION}.tar.gz
+        "ftp://gcc.gnu.org/pub/gcc/releases/${_sourcedir}/${_sourcedir}.tar.bz2"
         '000-relocatex-libintl-0.18.3.1.mingw.patch'
         '001-gcc-4.8-libstdc++export.patch'
         '002-gcc-4.7-stdthreads.patch'
@@ -80,7 +100,12 @@ source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver%%+*}/${_realna
         '137-gcc-4.9-Enable-shared-gnat-implib.patch'
         '903-Ada-build-fix-for-GCC-5-building-GCC-4.9.patch'
         '955-4.9.2-apply-hack-so-gcc_s-isnt-stripped.patch')
-sha256sums=('2020c98295856aa13fda0f2f3a4794490757fc24bcca918d52cc8b4917b972dd'
+sha256sums=('412538bb65c799ac98e17e8cfcdacbb257a57362acfaaff254b0fcae970126d2'
+            '02500a4edd14875f94fe84cbeda4290425cb0c1c2474c6f75d75a303d64b4196'
+            'cf4f4b2d80abb79e820e78c8077b6725bbbb4e8f41896783c899087be0e94068'
+            'dee2eda37f4ff541f30019932db0c37f6f77a30ba3609234933b1818f9b07071'
+            '6985c538143c1208dcb1ac42cedad6ff52e267b47e5f970183a3e75125b43c2e'
+            '2020c98295856aa13fda0f2f3a4794490757fc24bcca918d52cc8b4917b972dd'
             '164e6e90d9306d3da0f15d790a5e44fa87e1db043c4dc0bfaeb8ac1833b9fae0'
             '21191b4fd57ce5f230fcc97b4d9ae31bdc387d7c7c8e39436aa7e4268d278d3d'
             '5e0fc1437ce0b357e78d440692e3a30a7905a5f360a67928a95b14ec8d45365b'
@@ -136,7 +161,7 @@ _extract_to_gcc_folder() {
 # =========================================== #
 
 prepare() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd ${srcdir}/${_sourcedir}
 
   #remove files the patches will create (so they aren't in the way the 2nd time round)
   rm -f intl/canonicalize.c intl/relocatex.c intl/relocatex.h > /dev/null 2>&1 || true
@@ -197,7 +222,22 @@ prepare() {
 }
 
 build() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd ${srcdir}
+
+  if [[ $_use_intree_gmp_mpfr_mpc == "yes" ]]; then
+    _extract_to_gcc_folder          mpfr-${MPFR_VERSION}.tar.bz2
+    _extract_to_gcc_folder          gmp-${GMP_VERSION}.tar.xz
+    _extract_to_gcc_folder          mpc-${MPC_VERSION}.tar.gz
+  else
+    rm -fr ${srcdir}/${_sourcedir}/mpfr
+    rm -fr ${srcdir}/${_sourcedir}/gmp
+    rm -fr ${srcdir}/${_sourcedir}/mpc
+  fi
+
+  rm -fr ${srcdir}/${_sourcedir}/isl
+  rm -fr ${srcdir}/${_sourcedir}/cloog
+
+  cd ${srcdir}/${_sourcedir}
 
   #gcc/ada/adaint.c
   #gcc/ada/gcc-interface/Make-lang.in
@@ -206,7 +246,7 @@ build() {
   #create mode 100644 gcc/ada/rtfinal.c
   #create mode 100644 gcc/ada/rtinit.c
   if [[ "$_enable_ada" == "yes" && "$_enable_backstrapada" == "yes" ]]; then
-    patch -p1 -i ${srcdir}/903-Ada-build-fix-for-GCC-5-building-GCC-4.9.patch
+    apply_patch_with_msg 903-Ada-build-fix-for-GCC-5-building-GCC-4.9.patch
   fi
 
   # do not expect $prefix/mingw symlink - this should be superceded by
@@ -241,12 +281,23 @@ build() {
   elif [[ "$_enable_bootstrap" == "no" ]]; then
     extra_config+=("--disable-bootstrap")
   fi
+  #
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+    extra_config+=("--enable-shared")
+  elif [[ "$_enable_gcc_shared" == "no" ]]; then
+    extra_config+=("--disable-shared")
+  fi   
 
   # Replace the MSys2 FLAG values
   export LDFLAGS="-pipe"
   export CPPFLAGS=""
-  export CFLAGS="-pipe"
-  export CXXFLAGS="-pipe"
+  #if [[ "$_try_to_use_static_libs" == "yes" ]]; then
+    #export CFLAGS="-pipe -static"
+    #export CXXFLAGS="-pipe -static" 
+  #else
+    export CFLAGS="-pipe"
+    export CXXFLAGS="-pipe"
+  #fi
 
   case "${CARCH}" in
     i686)
@@ -283,7 +334,7 @@ build() {
   pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
   echo ""
 
-  ../${_realname}-${pkgver%%+*}/configure \
+  ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --with-local-prefix=${MINGW_PREFIX}/local \
     --build=${MINGW_CHOST} \
@@ -332,14 +383,17 @@ build() {
   make all
 
   make -j1 DESTDIR=${srcdir} install
-  if [ "$_enable_ada" == "yes" ]; then
+  if [[ "$_enable_ada" == "yes" && "$_enable_gcc_shared" == "yes" ]]; then
     mv ${srcdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adalib/*.dll ${srcdir}${MINGW_PREFIX}/bin/
   fi
 }
 
 package_mingw-w64-gcc-libs() {
   pkgdesc="GNU Compiler Collection (libraries) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-gmp" "${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  depends=("${MINGW_PACKAGE_PREFIX}-gmp")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  fi
 
   # Licensing information
 
@@ -357,9 +411,9 @@ by LGPL2+. The package as a whole can be redistributed under GPL3+.
 ENDFILE
 
   # License files
-  install -Dm644 "${srcdir}/${_realname}-${pkgver%%+*}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING3"
-  install -Dm644 "${srcdir}/${_realname}-${pkgver%%+*}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.LIB"
-  install -Dm644 "${srcdir}/${_realname}-${pkgver%%+*}/COPYING.RUNTIME" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.RUNTIME"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING3"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.LIB"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING.RUNTIME" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.RUNTIME"
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
 
@@ -372,10 +426,15 @@ ENDFILE
 
 package_mingw-w64-gcc() {
   pkgdesc="GNU Compiler Collection (C,C++,OpenMP) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-crt" "${MINGW_PACKAGE_PREFIX}-binutils" "${MINGW_PACKAGE_PREFIX}-winpthreads"
-           "${MINGW_PACKAGE_PREFIX}-headers" "${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc"
+  depends=("${MINGW_PACKAGE_PREFIX}-crt" "${MINGW_PACKAGE_PREFIX}-binutils"
+           "${MINGW_PACKAGE_PREFIX}-headers" "${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc")
            #"${MINGW_PACKAGE_PREFIX}-cloog"
-           "${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver%%+*}")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver}")
+  fi
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
 
@@ -464,7 +523,10 @@ package_mingw-w64-gcc-libgfortran() {
 
 package_mingw-w64-gcc-fortran() {
   pkgdesc="GNU Compiler Collection (Fortran) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}" "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver}")
+  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver}")
+  fi
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
