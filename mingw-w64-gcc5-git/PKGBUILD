@@ -60,9 +60,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
-_branch=releases/gcc-5
 
-source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-5"
         "0002-Relocate-libintl.patch"
         "0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch"
         "0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch"
@@ -127,10 +126,6 @@ pkgver() {
 
 prepare() {
   cd ${srcdir}/${_sourcedir}
-
-  git am --abort || true
-  
-  git clean -fxd
 
   _git_base_commit=$(git rev-parse HEAD)
 
