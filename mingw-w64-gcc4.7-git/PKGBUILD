@@ -15,6 +15,7 @@ _enable_objc=no
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
+_enable_backstrapada=no  # Use no for production
 
 # =========================================== #
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
@@ -141,6 +142,11 @@ prepare() {
 
 build() {
   cd ${srcdir}/${_sourcedir}
+
+  git restore gcc/ada/a-except.adb
+  if [[ "$_enable_ada" == "yes" && "$_enable_backstrapada" == "yes" ]]; then
+    git apply ${srcdir}/904-Ada-build-fix-for-GCC-4.8-building-GCC-4.7.patch
+  fi
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
