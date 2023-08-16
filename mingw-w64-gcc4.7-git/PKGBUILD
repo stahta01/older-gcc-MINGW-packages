@@ -12,7 +12,7 @@ _enable_ada=yes
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
-_threads="posix"         # Use posix for production
+_threads="posix"         # Use posix for production; and, win32 for development
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
 _enable_backstrapada=no  # Use no for production
@@ -51,7 +51,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-mpc"
              "${MINGW_PACKAGE_PREFIX}-mpfr"
              "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
-             "${MINGW_PACKAGE_PREFIX}-winpthreads"
+             $([[ "$_threads" == "posix" ]] && echo "${MINGW_PACKAGE_PREFIX}-winpthreads")
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
@@ -288,8 +288,10 @@ build() {
 
 package_mingw-w64-gcc-libs-git() {
   pkgdesc="GNU Compiler Collection (libraries) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-gmp"
-           "${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  depends=("${MINGW_PACKAGE_PREFIX}-gmp")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
   if [ "$_enable_fortran" == "yes" ]; then
@@ -337,8 +339,10 @@ package_mingw-w64-gcc-git() {
            "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
-           "${MINGW_PACKAGE_PREFIX}-winpthreads"
            "${MINGW_PACKAGE_PREFIX}-zlib")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 
