@@ -13,8 +13,10 @@ _enable_ada=yes          # Use yes for production
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
-_threads="win32"         # Use posix for production; and, win32 for development
-_enable_libquadmath=no   # Use no for production
+_threads="win32"                # Use posix for production; and, win32 for development
+_enable_libquadmath=no          # Use no for production
+_enable_gcc_shared=no          # Use yes for production
+#_try_to_use_static_libs=no      # Use no for production
 
 # =========================================== #
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
@@ -26,8 +28,8 @@ fi
 _realname=gcc
 pkgname=(
     "${MINGW_PACKAGE_PREFIX}-${_realname}"
-    "${MINGW_PACKAGE_PREFIX}-${_realname}-libs"
-    $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
+    $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+    $( [ "$_enable_gcc_shared" == "yes" ] && [ "$_enable_fortran" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
     $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
     $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
     $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
@@ -206,6 +208,12 @@ build() {
     extra_config+=("--disable-bootstrap")
   fi
   #
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+    extra_config+=("--enable-shared")
+  elif [[ "$_enable_gcc_shared" == "no" ]]; then
+    extra_config+=("--disable-shared")
+  fi   
+  #
   if [[ "$_enable_libquadmath" != "yes" ]]; then
     extra_config+=('--disable-libquadmath')
   fi
@@ -255,7 +263,7 @@ build() {
     --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
-    --enable-shared --enable-static \
+    --enable-static \
     --enable-libatomic \
     --enable-threads=${_threads} \
     --enable-graphite \
@@ -292,7 +300,7 @@ build() {
   make all
 
   make -j1 DESTDIR=${srcdir} install
-  if [ "$_enable_ada" == "yes" ]; then
+  if [[ "$_enable_ada" == "yes" && "$_enable_gcc_shared" == "yes" ]]; then
     mv ${srcdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adalib/*.dll ${srcdir}${MINGW_PREFIX}/bin/
   fi
 }
@@ -315,8 +323,10 @@ package_mingw-w64-gcc-libs() {
 package_mingw-w64-gcc() {
   pkgdesc="GNU Compiler Collection (C,C++,OpenMP) for MinGW-w64"
   depends=("${MINGW_PACKAGE_PREFIX}-crt" "${MINGW_PACKAGE_PREFIX}-binutils"
-           "${MINGW_PACKAGE_PREFIX}-headers" "${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc"
-           "${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver}")
+           "${MINGW_PACKAGE_PREFIX}-headers" "${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver}")
+  fi
   if [[ "$_threads" == "posix" ]]; then
      depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
   fi
@@ -408,15 +418,16 @@ package_mingw-w64-gcc-libgfortran() {
 
 package_mingw-w64-gcc-fortran() {
   pkgdesc="GNU Compiler Collection (Fortran) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}" "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver}")
+  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver}")
+  fi
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
   cp bin/${MINGW_CHOST}-gfortran.exe ${pkgdir}${MINGW_PREFIX}/bin/
-
-  #cp bin/libgfortran*.dll ${pkgdir}${MINGW_PREFIX}/bin/
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}
   cp -r lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/finclude  ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
