@@ -251,6 +251,14 @@ build() {
     _languages+=",objc,obj-c++"
   fi
 
+  echo ""
+  echo "CC [gcc] := ${CC-gcc}"
+  ${CC-gcc} --version | head -1
+  ${CC-gcc} --help | tail -1
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-headers
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
+  echo ""
+
   ../${_realname}-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
     --with-local-prefix=${MINGW_PREFIX}/local \
