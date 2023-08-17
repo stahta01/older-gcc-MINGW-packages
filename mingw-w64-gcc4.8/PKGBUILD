@@ -13,7 +13,7 @@ _enable_ada=yes          # Use yes for production
 _enable_fortran=no
 _enable_objc=no
 ### build options not normally changed
-_threads="posix"         # Use posix for production
+_threads="win32"         # Use posix for production; and, win32 for development
 _enable_libquadmath=no   # Use no for production
 
 # =========================================== #
@@ -41,9 +41,12 @@ license=('GPL' 'LGPL' 'FDL' 'custom')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain" "${MINGW_PACKAGE_PREFIX}")
 depends=("${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc"
          "${MINGW_PACKAGE_PREFIX}-crt"
-         "${MINGW_PACKAGE_PREFIX}-binutils" "${MINGW_PACKAGE_PREFIX}-winpthreads"
+         "${MINGW_PACKAGE_PREFIX}-binutils"
          "${MINGW_PACKAGE_PREFIX}-headers")
-makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada" "${MINGW_PACKAGE_PREFIX}-${_realname}" 'lndir')
+makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada"
+             "${MINGW_PACKAGE_PREFIX}-${_realname}"
+             $([[ "$_threads" == "posix" ]] && echo "${MINGW_PACKAGE_PREFIX}-winpthreads")
+             'lndir')
 #checkdepends=('dejagnu')
 optdepends=()
 replaces=()
@@ -296,7 +299,10 @@ build() {
 
 package_mingw-w64-gcc-libs() {
   pkgdesc="GNU Compiler Collection (libraries) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-gmp" "${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  depends=("${MINGW_PACKAGE_PREFIX}-gmp")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  fi
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
 
   cd ${srcdir}${MINGW_PREFIX}
@@ -308,9 +314,12 @@ package_mingw-w64-gcc-libs() {
 
 package_mingw-w64-gcc() {
   pkgdesc="GNU Compiler Collection (C,C++,OpenMP) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-crt" "${MINGW_PACKAGE_PREFIX}-binutils" "${MINGW_PACKAGE_PREFIX}-winpthreads"
+  depends=("${MINGW_PACKAGE_PREFIX}-crt" "${MINGW_PACKAGE_PREFIX}-binutils"
            "${MINGW_PACKAGE_PREFIX}-headers" "${MINGW_PACKAGE_PREFIX}-zlib" "${MINGW_PACKAGE_PREFIX}-mpc"
            "${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver}")
+  if [[ "$_threads" == "posix" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
 
