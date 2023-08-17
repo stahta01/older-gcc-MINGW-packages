@@ -25,18 +25,18 @@ fi
 # =========================================== #
 
 _realname=gcc
-pkgbase=mingw-w64-${_realname}4.8
+pkgbase=mingw-w64-${_realname}4.8-git
 pkgname=(
-    "${MINGW_PACKAGE_PREFIX}-${_realname}"
-    $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
-    $( [ "$_enable_gcc_shared" == "yes" ] && [ "$_enable_fortran" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
-    $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
-    $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
-    $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
+    "${MINGW_PACKAGE_PREFIX}-${_realname}-git"
+    $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
+    $( [ "$_enable_gcc_shared" == "yes" ] && [ "$_enable_fortran" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran-git")
+    $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran-git")
+    $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
+    $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
 )
-pkgver=4.8.2
-pkgrel=9
-_sourcedir=${_realname}-${pkgver}
+pkgver=4.8.2+d20131016.r49.c0.g3cf2083d636b
+pkgrel=1
+_sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="http://gcc.gnu.org"
@@ -54,7 +54,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada"
 optdepends=()
 replaces=()
 backup=()
-source=("ftp://gcc.gnu.org/pub/gcc/releases/${_sourcedir}/${_sourcedir}.tar.bz2"
+_commit='3cf2083d636bab3e3a6e91e8b0a0ca1244dff722' # (tag: releases/gcc-4.8.2)
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
     'gcc-4.8-filename-output.patch'
     'gcc-4.8-lambda-ICE.patch'
     'gcc-4.8-iconv.patch'
@@ -71,7 +72,7 @@ source=("ftp://gcc.gnu.org/pub/gcc/releases/${_sourcedir}/${_sourcedir}.tar.bz2"
     'libgomp-no-static.patch'
     'gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch'
     handle-use-mingw-ansi-stdio.patch)
-sha256sums=('09dc2276c73424bbbfda1dbddc62bbbf900c9f185acf7f3e1d773ce2d7e3cdc8'
+sha256sums=('SKIP'
             '9278e745190bac0b3f6ef74972aecd4e2891d4930f7b6fa8840c3d4f7fbf4f98'
             '301cfbe339043ca14205140acbec1d0f55178f01365ff309e4ddb90a3c934031'
             '9e0401c3e69317a45269fb689e4e89ee8f46997c2c52b11812a11c9faf142ede'
@@ -122,8 +123,28 @@ _extract_to_gcc_folder() {
 }
 # =========================================== #
 
+_git_base_commit=
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  local _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
+  local _gcc_date=$(head -n 34 gcc/DATESTAMP | sed -e 's/.* //' | tr -d '"\n')
+  if [[ -n "${_git_base_commit}" ]]; then
+    printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
+      $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
+      $(git rev-list --count ${_git_base_commit}..HEAD) \
+      $(git rev-parse --short=12 ${_git_base_commit})
+  else
+    printf "%s" ${pkgver}
+  fi
+}
+
 prepare() {
   cd ${srcdir}/${_sourcedir}
+
+  _git_base_commit=$(git rev-parse HEAD)
+
+  GIT_AM="git am --committer-date-is-author-date"
 
   #remove files the patches will create (so they aren't in the way the 2nd time round)
   [ -f gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C ] && rm gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C
@@ -187,17 +208,13 @@ build() {
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 160-mingw-dont-ignore-native-system-header-dir.patch .. but isn't!
-  if [ -f configure.sedbak ]; then
-    cp configure.sedbak configure
-  fi
-  sed --in-place=.sedbak 's/${prefix}\/mingw\//${prefix}\//g' configure
+  git restore configure
+  sed --in-place 's/${prefix}\/mingw\//${prefix}\//g' configure
 
   # change hardcoded /mingw prefix to the real prefix
   local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
-  if [ -f gcc/config/i386/mingw32.h.sedbak ]; then
-    cp gcc/config/i386/mingw32.h.sedbak gcc/config/i386/mingw32.h
-  fi
-  sed --in-place=.sedbak "s/\\/mingw\\//${MINGW_NATIVE_PREFIX//\//\\/}\\//g" gcc/config/i386/mingw32.h
+  git restore gcc/config/i386/mingw32.h
+  sed --in-place "s/\\/mingw\\//${MINGW_NATIVE_PREFIX//\//\\/}\\//g" gcc/config/i386/mingw32.h
 
   declare -a extra_config
   extra_config+=('--without-isl')
@@ -320,6 +337,9 @@ package_mingw-w64-gcc-libs() {
   if [[ "$_threads" == "posix" ]]; then
      depends+=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
   fi
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
 
   cd ${srcdir}${MINGW_PREFIX}
@@ -341,6 +361,8 @@ package_mingw-w64-gcc() {
   fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-base")
+  provides+=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  conflicts+=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,include,lib,share}
 
@@ -419,6 +441,8 @@ package_mingw-w64-gcc() {
 package_mingw-w64-gcc-libgfortran() {
   pkgdesc="GNU Compiler Collection (libgfortran) for MinGW-w64"
   depends=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs=${pkgver}")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
   cd ${srcdir}${MINGW_PREFIX}
@@ -431,6 +455,8 @@ package_mingw-w64-gcc-fortran() {
   if [[ "$_enable_gcc_shared" == "yes" ]]; then
      depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver}")
   fi
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
@@ -452,6 +478,8 @@ package_mingw-w64-gcc-fortran() {
 package_mingw-w64-gcc-ada() {
   pkgdesc="GNU Compiler Collection (Ada) for MinGW-w64"
   depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib,share}
 
@@ -486,6 +514,8 @@ package_mingw-w64-gcc-ada() {
 package_mingw-w64-gcc-objc() {
   pkgdesc="GNU Compiler Collection (ObjC,Obj-C++) for MinGW-w64"
   depends=("${MINGW_PACKAGE_PREFIX}-${_realname}=${pkgver}")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib}
 
@@ -502,51 +532,51 @@ package_mingw-w64-gcc-objc() {
 # Wrappers for package functions
 
 # 32-bit wrappers
-package_mingw-w64-i686-gcc-libs() {
+package_mingw-w64-i686-gcc-libs-git() {
   package_mingw-w64-gcc-libs
 }
 
-package_mingw-w64-i686-gcc() {
+package_mingw-w64-i686-gcc-git() {
   package_mingw-w64-gcc
 }
 
-package_mingw-w64-i686-gcc-libgfortran() {
+package_mingw-w64-i686-gcc-libgfortran-git() {
   package_mingw-w64-gcc-libgfortran
 }
 
-package_mingw-w64-i686-gcc-fortran() {
+package_mingw-w64-i686-gcc-fortran-git() {
   package_mingw-w64-gcc-fortran
 }
 
-package_mingw-w64-i686-gcc-ada() {
+package_mingw-w64-i686-gcc-ada-git() {
   package_mingw-w64-gcc-ada
 }
 
-package_mingw-w64-i686-gcc-objc() {
+package_mingw-w64-i686-gcc-objc-git() {
   package_mingw-w64-gcc-objc
 }
 
 # 64-bit wrappers
-package_mingw-w64-x86_64-gcc-libs() {
+package_mingw-w64-x86_64-gcc-libs-git() {
   package_mingw-w64-gcc-libs
 }
 
-package_mingw-w64-x86_64-gcc() {
+package_mingw-w64-x86_64-gcc-git() {
   package_mingw-w64-gcc
 }
 
-package_mingw-w64-x86_64-gcc-libgfortran() {
+package_mingw-w64-x86_64-gcc-libgfortran-git() {
   package_mingw-w64-gcc-libgfortran
 }
 
-package_mingw-w64-x86_64-gcc-fortran() {
+package_mingw-w64-x86_64-gcc-fortran-git() {
   package_mingw-w64-gcc-fortran
 }
 
-package_mingw-w64-x86_64-gcc-ada() {
+package_mingw-w64-x86_64-gcc-ada-git() {
   package_mingw-w64-gcc-ada
 }
 
-package_mingw-w64-x86_64-gcc-objc() {
+package_mingw-w64-x86_64-gcc-objc-git() {
   package_mingw-w64-gcc-objc
 }
