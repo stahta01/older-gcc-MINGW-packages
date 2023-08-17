@@ -137,43 +137,43 @@ prepare() {
   patch -p0 -i ${srcdir}/gcc-4.8-filename-output.patch
 
   # http://gcc.gnu.org/bugzilla//show_bug.cgi?id=56710 - commit 3d1f8279
-  patch -p1 -i ${srcdir}/gcc-4.8-lambda-ICE.patch
+  apply_patch_with_msg gcc-4.8-lambda-ICE.patch
 
-  #patch -p1 -i ${srcdir}/gcc-4.8-iconv.patch
+  #apply_patch_with_msg gcc-4.8-iconv.patch
 
   patch -p0 -i ${srcdir}/4.8-libgcc-references.patch
-  patch -p1 -i ${srcdir}/gcc-4.8-libstdc++export.patch
-  patch -p1 -i ${srcdir}/gcc-4.7-stdthreads.patch
+  apply_patch_with_msg gcc-4.8-libstdc++export.patch
+  apply_patch_with_msg gcc-4.7-stdthreads.patch
 
   # Don't waste valuable commandline chars on double-quotes around "arguments"
   #  that don't need them.
-  patch -p1 -i ${srcdir}/130-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
+  apply_patch_with_msg 130-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
 
   # Make Windows behave the same as Posix in the consideration of whether folder
   # "/exists/doesnt-exist/.." is a valid path.. in Posix, it isn't.
-  patch -p1 -i ${srcdir}/140-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  apply_patch_with_msg 140-fix-for-windows-not-minding-non-existant-parent-dirs.patch
 
   # Don't make a lowercase backslashed path from argv[0]
   #  that then fail to strcmp with prefix(es) .. they're also ugly.
-  patch -p1 -i ${srcdir}/150-windows-lrealpath-no-force-lowercase-nor-backslash.patch
+  apply_patch_with_msg 150-windows-lrealpath-no-force-lowercase-nor-backslash.patch
 
   # Don't ignore values passed via --with-native-system-header-dir=
-  # patch -p1 -i ${srcdir}/160-mingw-dont-ignore-native-system-header-dir.patch
+  # apply_patch_with_msg 160-mingw-dont-ignore-native-system-header-dir.patch
 
   # Kai's libgomp fix.
-  patch -p1 -i ${srcdir}/ktietz-libgomp.patch
+  apply_patch_with_msg ktietz-libgomp.patch
 
   # Enable building libatomic
   patch -p2 -i ${srcdir}/4.8-libatomic-cygwin.patch
 
   # Build aextra tools for Ada
-  patch -p1 -i ${srcdir}/build-more-gnattools.mingw.patch
+  apply_patch_with_msg build-more-gnattools.mingw.patch
 
   # Fix for -fdump-{ipa|tree|rtl}-all-all not working:
   # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=60484
-  patch -p1 -i ${srcdir}/gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch
+  apply_patch_with_msg gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch
 
-  patch -p1 -i ${srcdir}/handle-use-mingw-ansi-stdio.patch
+  apply_patch_with_msg handle-use-mingw-ansi-stdio.patch
 }
 
 build() {
@@ -181,7 +181,7 @@ build() {
 
   if check_option "debug" "y"; then
     # Expose some libgomp internals for debugging.
-    patch -p1 -i ${srcdir}/libgomp-no-static.patch
+    apply_patch_with_msg libgomp-no-static.patch
   fi
 
   # do not expect $prefix/mingw symlink - this should be superceded by
