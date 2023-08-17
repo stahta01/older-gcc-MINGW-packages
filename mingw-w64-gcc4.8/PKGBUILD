@@ -26,6 +26,7 @@ fi
 # =========================================== #
 
 _realname=gcc
+pkgbase=mingw-w64-${_realname}4.8
 pkgname=(
     "${MINGW_PACKAGE_PREFIX}-${_realname}"
     $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
