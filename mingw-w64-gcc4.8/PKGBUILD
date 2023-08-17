@@ -37,6 +37,7 @@ pkgname=(
 )
 pkgver=4.8.2
 pkgrel=9
+_sourcedir=${_realname}-${pkgver}
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 url="http://gcc.gnu.org"
@@ -54,7 +55,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada"
 optdepends=()
 replaces=()
 backup=()
-source=("ftp://gcc.gnu.org/pub/gcc/releases/${_realname}-${pkgver}/${_realname}-${pkgver}.tar.bz2"
+source=("ftp://gcc.gnu.org/pub/gcc/releases/${_sourcedir}/${_sourcedir}.tar.bz2"
     'gcc-4.8-filename-output.patch'
     'gcc-4.8-lambda-ICE.patch'
     'gcc-4.8-iconv.patch'
@@ -123,7 +124,7 @@ _extract_to_gcc_folder() {
 # =========================================== #
 
 prepare() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd ${srcdir}/${_sourcedir}
 
   #remove files the patches will create (so they aren't in the way the 2nd time round)
   [ -f gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C ] && rm gcc/testsuite/g++.dg/cpp0x/lambda/lambda-names1.C
@@ -178,7 +179,7 @@ prepare() {
 }
 
 build() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd ${srcdir}/${_sourcedir}
 
   if check_option "debug" "y"; then
     # Expose some libgomp internals for debugging.
@@ -260,7 +261,7 @@ build() {
   pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
   echo ""
 
-  ../${_realname}-${pkgver}/configure \
+  ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
     --with-local-prefix=${MINGW_PREFIX}/local \
     --build=${MINGW_CHOST} \
