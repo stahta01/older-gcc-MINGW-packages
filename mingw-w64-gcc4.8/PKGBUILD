@@ -15,8 +15,7 @@ _enable_objc=no
 ### build options not normally changed
 _threads="win32"                # Use posix for production; and, win32 for development
 _enable_libquadmath=no          # Use no for production
-_enable_gcc_shared=no          # Use yes for production
-#_try_to_use_static_libs=no      # Use no for production
+_enable_gcc_shared=yes          # Use yes for production
 
 # =========================================== #
 if [[ "$_enable_fortran" == "yes" && "$_enable_libquadmath" != "yes" ]]; then
