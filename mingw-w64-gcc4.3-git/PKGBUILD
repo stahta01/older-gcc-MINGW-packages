@@ -1,0 +1,453 @@
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
+# Contributor: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: Ray Donnelly <mingw.android@gmail.com>
+# Contributor: Alexey Borzenkov <snaury@gmail.com>
+# Contributor: Renato Silva <br.renatosilva@gmail.com>
+
+### Major build options
+_include_sub_folder=/${MINGW_CHOST}
+_enable_bootstrap=no
+_enable_threads=yes
+_build_using_external_compiler=no   # Use no for production
+### Language build options
+_enable_ada=yes
+_enable_cxx=no                     # Use yes for production
+### build options not normally changed
+_threads="win32"                    # posix failed to work; it was added in GCC 4.7
+_enable_libquadmath=no              # Use no for production
+_enable_libgomp=no
+_enable_libstdcxx=yes               # Use yes for production
+_enable_backstrapada=no             # Use no for production
+_build_static_only_gcc=no           # Use no for production
+
+# =========================================== #
+if [[ "$_build_using_external_compiler" == "yes" && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "external compiler fails to build libgomp; so, libgomp was disabled"
+fi
+if [[ "$_build_using_external_compiler" == "yes" && "$_enable_libstdcxx" == "yes" ]]; then
+  _enable_libstdcxx=no
+  warning "external compiler fails to build libstdcxx; so, libstdcxx was disabled"
+fi
+if [[ "$_build_using_external_compiler" == "yes" && "$_build_static_only_gcc" == "no" ]]; then
+  _build_static_only_gcc=yes
+  warning "external compiler fails to build shared; so, shared was disabled"
+fi
+if [[ "$_enable_cxx" != "yes" && "$_enable_libstdcxx" == "yes" ]]; then
+  warning "when not building C++; libstdcxx is disabled"
+  _enable_libstdcxx=no
+fi
+# =========================================== #
+
+_realname=gcc
+pkgbase=mingw-w64-${_realname}4.3-git
+pkgname=(
+  "${MINGW_PACKAGE_PREFIX}-${_realname}-git" # This package must be first in this list
+  $([[ "$_build_static_only_gcc" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
+)
+pkgver=4.3.6+d20110627.r39.c8.g6503c21eb909
+if [[ "$_build_using_external_compiler" == "yes" ]]; then
+  pkgrel=1
+else
+  # 2 non-static build not using ext. compiler
+  # 3 plus _enable_threads=yes
+  pkgrel=3
+fi
+_sourcedir=${_realname}-git
+pkgdesc="GCC for the MinGW-w64"
+arch=('any')
+url="https://gcc.gnu.org"
+license=('GPL' 'LGPL' 'FDL' 'custom')
+groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
+makedepends=($([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}")
+             $([[ "$_enable_ada" == "yes" && \
+                  "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+             "${MINGW_PACKAGE_PREFIX}-binutils"
+             "${MINGW_PACKAGE_PREFIX}-crt"
+             "${MINGW_PACKAGE_PREFIX}-headers"
+             "${MINGW_PACKAGE_PREFIX}-gmp"
+             "${MINGW_PACKAGE_PREFIX}-libiconv"
+             "${MINGW_PACKAGE_PREFIX}-mpc"
+             "${MINGW_PACKAGE_PREFIX}-mpfr"
+             "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
+             #$([[ "$_build_using_external_compiler" != "yes" ]] && echo "texinfo")
+             "${MINGW_PACKAGE_PREFIX}-zlib")
+#checkdepends=('dejagnu')
+optdepends=()
+options=('staticlibs' '!emptydirs' '!strip' 'debug')
+_branch=releases/gcc-4.3
+
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
+        'conftest.adb'
+        '111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch'
+        '122-gcc-4.9-Relocate-libintl.patch'
+        '131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch'
+        '132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch'
+        '201-gcc-4.3-ada-Fix-wrong-case.patch'
+        '202-gcc-4.3-ada-Add-space-between-and-return.patch'
+        '704-gcc-4.3-Fix-texi-docs-syntax-errors.patch'
+        '705-gcc-4.3-texi2pod.pl-Escape-braces-in-regexp-involving-strong.patch'
+        '707-gcc-4.3-PR-c-47589-ICE-Segmentation-fault.patch'
+        '906-Ada-build-fix-for-GCC-4.4-and-4.3-building-GCC-4.3.patch')
+sha256sums=('SKIP'
+            '7270a08586d76b73d251d530f740a29a8bcc1ae11bf28a0fa35e811c9f39f2c1'
+            'cba7c512a4e0e6a738e0f4ad1026930260a73c7b39bedf36df0b16bae312206b'
+            'd143713dfcb86afa0c32e53b12c1d3a9586729b6580c8e535d72e03003511914'
+            '7cd7f884b7d2f64846adfb06007e881834fd00e98f78c737b965a823ce6198b0'
+            'd122ee00238f2cef746639cc5d8807dffd7d4f06a33e1bb146fa1b28a7dae14a'
+            '50d3723b3c8e0e75dc9cbe5306737df21ef90a5d25d509757684e279189bec06'
+            'd1017c3118033c5e256a7bc95feb5ecf5192daa43dba1909452f782f377fe95d'
+            '5f3a2cf3c32abe305f870ddd50ed475f4d4aa2c112e60ae7c22ca5c247603cb7'
+            '1afb2022fb8a6390b26c24603007c8cf29435bc2c68a576898a2f45c3207cfee'
+            '08c46a897043fc6d56f9a5688dbca9924cfc69a5c8b995d88a240aeb7b72bbaa'
+            '0fc6cac13c63a3f1dcada189ceb9dd99d929d41cb64a54a527bc623de076f698')
+# =========================================== #
+# Helper macros to help make tasks easier     #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    if patch --dry-run -Rbp1 -i "${srcdir}/${_patch}" > /dev/null 2>&1 ; then
+      msg2 "Skipping ${_patch} because it likely was already applied"
+    else
+      msg2 "Applying ${_patch}"
+      patch -Nbp1 -i "${srcdir}/${_patch}"
+    fi
+  done
+}
+del_file_exists() {
+  for _fname in "$@"
+  do
+    if [ -f ${_fname} ]; then
+      rm -rf ${_fname}
+    fi
+  done
+}
+# =========================================== #
+_git_base_commit=
+
+pkgver() {
+  cd ${srcdir}/${_sourcedir}
+  local _gcc_version=$(head -n 34 gcc/BASE-VER | sed -e 's/.* //' | tr -d '"\n')
+  local _gcc_date=$(head -n 34 gcc/DATESTAMP | sed -e 's/.* //' | tr -d '"\n')
+  if [[ -n "${_git_base_commit}" ]]; then
+    printf "%s+d%s.r%s.c%s.g%s" "$_gcc_version" "$_gcc_date" \
+      $(git rev-list --count $(git log -1 --format=%H -- gcc/DATESTAMP)..${_git_base_commit}) \
+      $(git rev-list --count ${_git_base_commit}..HEAD) \
+      $(git rev-parse --short=12 ${_git_base_commit})
+  else
+    printf "%s" ${pkgver}
+  fi
+}
+
+prepare() {
+  cd ${srcdir}/${_sourcedir}
+
+  #git am --abort || true
+
+  #git clean -fxd
+
+  _git_base_commit=$(git rev-parse HEAD)
+
+  del_file_exists \
+    intl/canonicalize.c \
+    intl/canonicalize.h \
+    intl/relocatex.c \
+    intl/relocatex.h
+
+  GIT_AM="git am --committer-date-is-author-date"
+
+  ${GIT_AM} ${srcdir}/122-gcc-4.9-Relocate-libintl.patch
+  ${GIT_AM} ${srcdir}/131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
+  ${GIT_AM} ${srcdir}/132-gcc-4.3-dont-escape-arguments-that-dont-need-it-in-pex-win32.c.patch
+  ${GIT_AM} ${srcdir}/201-gcc-4.3-ada-Fix-wrong-case.patch
+  ${GIT_AM} ${srcdir}/202-gcc-4.3-ada-Add-space-between-and-return.patch
+  ${GIT_AM} ${srcdir}/704-gcc-4.3-Fix-texi-docs-syntax-errors.patch
+  ${GIT_AM} ${srcdir}/705-gcc-4.3-texi2pod.pl-Escape-braces-in-regexp-involving-strong.patch
+  ${GIT_AM} ${srcdir}/707-gcc-4.3-PR-c-47589-ICE-Segmentation-fault.patch
+
+  sed -i 's|${prefix}/mingw/|${prefix}/|g' configure
+}
+
+build() {
+  cd ${srcdir}/${_sourcedir}
+
+  #git restore libcpp/files.c
+  #if [[ "$_build_using_external_compiler" != "yes" ]]; then
+    ## IO_REPARSE_TAG_SYMLINK is missing from some of the external compilers
+    #git apply ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  #fi
+
+  git restore gcc/ada/einfo.adb
+  git restore gcc/ada/lib-xref.adb
+  git restore gcc/ada/sem_ch3.adb
+  git restore gcc/ada/sem_elab.adb
+  git restore gcc/ada/sem_util.adb
+  if [[ "$_enable_ada" == "yes" && "$_enable_backstrapada" == "yes" ]]; then
+    apply_patch_with_msg 906-Ada-build-fix-for-GCC-4.4-and-4.3-building-GCC-4.3.patch
+  fi
+
+  # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
+  # it might work at build time and could be important there but beyond that?!
+  local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
+  git restore gcc/config/i386/mingw32.h
+  sed -i "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
+
+  # Replace "/mingw/" with the unix like path used
+  git restore gcc/config/i386/t-mingw32
+  sed -i "s|/mingw/|${MINGW_PREFIX}${_include_sub_folder}/|g" gcc/config/i386/t-mingw32
+
+  mkdir -p ${MINGW_PREFIX}${_include_sub_folder}/include
+
+  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
+  mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
+
+  # Replace the MSys2 FLAG values
+  export LDFLAGS="-pipe"
+  export CPPFLAGS=""
+  export CFLAGS="-pipe"
+  export CXXFLAGS="-pipe"
+
+  if [[ "$_build_using_external_compiler" == "yes" ]]; then
+    # GCC 4.1.3 from GNAT 2007 builds GCC4.3.x w/o  Ada status works
+    # GCC 4.1.3 from GNAT 2007 builds GCC4.3.x with Ada status works with CRT 2 built with GCC4.2.x
+    # GCC 4.1.3 from GNAT 2007 builds GCC4.3.x with Ada status works with CRT 1 built with GNAT 2007 and binutils 2.27
+    # GCC 4.1.3 from GNAT 2007 builds gcc4.5.x w/o  Ada status works
+    # GCC 4.1.3 from GNAT 2007 builds gcc4.5.x with Ada status works with CRT 2 also built with GNAT 2007
+    local _GNAT_year=2007
+    if [ "$_GNAT_year" == "2007" ]; then
+      local _compiler_toolchain_host=pentium-mingw32msv
+    else
+      local _compiler_toolchain_host=i686-pc-mingw32
+    fi
+    local _compiler_toolchain_prefix=/h/GNAT/${_GNAT_year}
+    export PATH=${_compiler_toolchain_prefix}/bin:$PATH
+    if [ "$_GNAT_year" == "2007" ]; then
+      export CFLAGS+=" -std=gnu99" # GNAT GCC 4.1.3 defaults to a too low of std
+    fi
+    export LD="${_compiler_toolchain_prefix}/bin/ld"
+    export CC="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-gcc"
+    if [ "$_GNAT_year" != "2007" ]; then
+      export CXX="${_compiler_toolchain_prefix}/bin/${_compiler_toolchain_host}-g++"
+    fi
+    export CXXCPP="${CXX} -E"
+    if [ "$_enable_ada" == "yes" ]; then
+      export GNATMAKE="${_compiler_toolchain_prefix}/bin/gnatmake"
+      export GNATBIND="${_compiler_toolchain_prefix}/bin/gnatbind"
+      #export ADA_INCLUDE_PATH="${_compiler_toolchain_prefix}/lib/gcc/${_compiler_toolchain_host}/4.1.3/adainclude"
+    fi
+  fi
+  echo "PATH := $PATH"
+  ${CC} --version
+
+  declare -a extra_config
+  extra_config+=('--without-isl')
+  extra_config+=('disable-graphite')
+  #if [[ "$_build_using_external_compiler" == "yes" ]]; then
+    #extra_config+=("--with-build-sysroot=${_compiler_toolchain_prefix}")
+  #fi
+  if [[ "$_enable_libquadmath" != "yes" ]]; then
+    extra_config+=('--disable-libquadmath')
+  fi
+  #
+  if [ "$_enable_libgomp" == "yes" ]; then
+    extra_config+=("--enable-libgomp")
+  elif [ "$_enable_libgomp" == "no" ]; then
+    extra_config+=("--disable-libgomp")
+  fi
+  #
+  if [[ "$_enable_bootstrap" == "yes" ]]; then
+    extra_config+=("--enable-bootstrap")
+  elif [[ "$_enable_bootstrap" == "no" ]]; then
+    extra_config+=("--disable-bootstrap")
+  fi
+  #
+  if [[ "$_enable_threads" != "yes" ]]; then
+    extra_config+=('--disable-threads')
+  else
+    extra_config+=("--enable-threads=${_threads}")
+  fi
+  #
+  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+    extra_config+=("--enable-shared")
+  else
+    extra_config+=("--disable-shared")
+  fi
+  # GCC 4.8 and above has disable-libstdcxx option
+  # The '--disable-libstdc__-v3' is used before 4.8
+  if [[ "$_enable_libstdcxx" != "yes" ]]; then
+    extra_config+=('--disable-libstdcxx')
+    extra_config+=('--disable-libstdc__-v3')
+  else
+    extra_config+=('--enable-libstdcxx-time')
+    extra_config+=('--enable-fully-dynamic-string')
+    extra_config+=('--disable-libstdcxx-pch')
+    if check_option "debug" "n"; then
+      extra_config+=("--disable-libstdcxx-debug")
+    else
+      extra_config+=("--enable-libstdcxx-debug")
+    fi
+  fi
+
+  case "${CARCH}" in
+    i686)
+      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      LDFLAGS+=" -Wl,--large-address-aware"
+      local _arch=i686
+    ;;
+
+    x86_64)
+      local _arch=x86-64
+      local _conf=""
+    ;;
+  esac
+
+  local _languages="c"
+  if [ "$_enable_ada" == "yes" ]; then
+    _languages+=",ada"
+  fi
+  if [ "$_enable_cxx" == "yes" ]; then
+    _languages+=",c++"
+  fi
+
+  echo ""
+  echo "CC [gcc] := ${CC-gcc}"
+  ${CC-gcc} --version | head -1
+  ${CC-gcc} --help | tail -1
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-headers
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-crt
+  pacman -Q texinfo || true # causes build problems for external compiler
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-gcc || true
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-gcc-libs || true
+  echo ""
+  echo "CPPFLAGS := ${CPPFLAGS}"
+  echo ""
+  echo "ADA_INCLUDE_PATH := ${ADA_INCLUDE_PATH}"
+  echo ""
+  echo "ADA_OBJECT_PATH := ${ADA_OBJECT_PATH}"
+  echo ""
+  echo "extra_config contains ${extra_config[@]}"
+  echo ""
+
+  if [[ "$_enable_ada" == "yes" ]]; then
+    # configure fails to give clear reason for failure
+    ${CC} -c ${srcdir}/conftest.adb
+  fi
+
+  ../${_sourcedir}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --with-local-prefix=${MINGW_PREFIX}/local \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
+    --libexecdir=${MINGW_PREFIX}/lib \
+    --with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
+    --with-arch=${_arch} \
+    --with-tune=generic \
+    --enable-languages=${_languages} \
+    --enable-static \
+    --enable-libatomic \
+    --enable-fully-dynamic-string \
+    --enable-version-specific-runtime-libs \
+    "${extra_config[@]}" \
+    --enable-lto \
+    --disable-multilib \
+    --enable-checking=release \
+    --disable-rpath \
+    --disable-win32-registry \
+    --disable-nls \
+    --disable-werror \
+    --disable-symvers \
+    --with-libiconv \
+    --with-system-zlib \
+    --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
+    --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
+    --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
+    --with-gnu-as --with-gnu-ld \
+    ${_conf}
+    #--enable-libitm
+    #--enable-objc-gc
+
+  # While we're debugging -fopenmp problems at least.
+  # .. we may as well not strip anything.
+  if check_option "strip" "n"; then
+    sed -i 's,^STRIP = .*$,STRIP = true,g'                   Makefile
+    sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
+  fi
+
+  #alias makeinfo='true' ; 
+  make all # || make all V=1 -j1
+}
+
+package_gcc-git() {
+  pkgdesc="GNU Compiler Collection ${_base_ver} (mingw-w64)"
+  depends=("${MINGW_PACKAGE_PREFIX}-crt"
+           "${MINGW_PACKAGE_PREFIX}-headers"
+           "${MINGW_PACKAGE_PREFIX}-zlib"
+           "${MINGW_PACKAGE_PREFIX}-windows-default-manifest")
+  depends+=("${MINGW_PACKAGE_PREFIX}-binutils")
+  depends+=("${MINGW_PACKAGE_PREFIX}-libiconv")
+  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+    depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}")
+  fi
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+            "${MINGW_PACKAGE_PREFIX}-cc")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  if [ "$_enable_ada" == "yes" ]; then
+    provides+=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+    conflicts+=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+  fi
+
+  cd "${srcdir}/build-${MSYSTEM}"
+  export PATH=${MINGW_PREFIX}/bin:$PATH
+
+  make -j1 DESTDIR="${pkgdir}" install
+
+  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+    [[ -d ${srcdir}/dlls ]] && rm -rf ${srcdir}/dlls
+    mkdir -p ${srcdir}/dlls
+    #mv ${pkgdir}${MINGW_PREFIX}/bin/*.dll ${srcdir}/dlls/
+    if [[ "$_enable_ada" == "yes" ]]; then
+      mv ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adalib/*.dll ${srcdir}/dlls/
+    fi
+  fi
+
+  rm -f ${pkgdir}${MINGW_PREFIX}/share/info/dir
+  rm -f ${pkgdir}${MINGW_PREFIX}/lib/libiberty.a
+
+  if [[ "$_build_static_only_gcc" == "yes" ]]; then
+    # License files
+    install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING3"
+    install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB"
+  fi
+}
+
+package_gcc-libs-git() {
+  pkgdesc="GNU Compiler Collection (libraries) for MinGW-w64"
+  depends=()
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs")
+  provides+=("${MINGW_PACKAGE_PREFIX}-libssp")
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
+  cp ${srcdir}/dlls/*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+
+  # Licensing information
+  license=(GPL3+ partial:'GCCRLE' partial:'LGPL2+')
+
+  # License files
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING3"
+  install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.LIB"
+  #install -Dm644 "${srcdir}/${_sourcedir}/COPYING.RUNTIME" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-libs/COPYING.RUNTIME"
+}
+
+# Wrappers for package functions
+
+# 32-bit wrappers
+package_mingw-w64-i686-gcc-libs-git() {
+  package_gcc-libs-git
+}
+
+package_mingw-w64-i686-gcc-git() {
+  package_gcc-git
+}
