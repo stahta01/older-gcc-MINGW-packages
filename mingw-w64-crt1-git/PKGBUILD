@@ -10,7 +10,7 @@ _sourcedir=mingw-w64-git
 pkgbase=mingw-w64-${_realname}1-git
 pkgname=($([[ "$_build_headers_only" != "yes" ]] && echo  "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
          "${MINGW_PACKAGE_PREFIX}-headers-git")
-pkgver=1.0.2570.gd47beaece
+pkgver=1.0.2498.g4dc372b7e
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1 # Build using 2007 GNAT GCC 4.1
 else
@@ -36,8 +36,15 @@ else
     pkgrel=0
   fi
 fi
- _commit='d47beaececf1e996b92bc3a937dc6de30596f2a9' # 1.0.2570.gd47beaece
+#_commit='d47beaececf1e996b92bc3a937dc6de30596f2a9' # 1.0.2570.gd47beaece   Re-build Failure
+#_commit='447dd962e49b2cd10dc6b34790f3b1f80ec7bc75' # 1.0.2515.g447dd962e   ???
+#_commit='27de6cdf368eca25d0acf3fa3a107b8fbe8210e0' # 1.0.2507.g27de6cdf3   ???
+ _commit='4dc372b7ee84e9188dd0ba0f5f47c6a02383e354' # 1.0.2498.g4dc372b7e
 #_commit='6e5ac49e300a10c1dc4ac474fb1d1891ab5520d3' #
+#_commit='7c406d2a292696ce06b309957e1e5ec0466de429' #
+#_commit='7ff58eb52daa67f8f441ad2cc0e637db068482d1' #
+#_commit='fdad22b3cd8ef8544974d46b5ae5f1c0c9b8847f' #
+
 pkgdesc='MinGW-w64 CRT for Windows'
 arch=('any')
 url='https://mingw-w64.sourceforge.io/'
@@ -113,9 +120,7 @@ build() {
   ${srcdir}/${_sourcedir}/mingw-w64-headers/configure \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
-    --prefix=${MINGW_PREFIX} \
-    --enable-sdk=all \
-    --enable-secure-api
+    --prefix=${MINGW_PREFIX}
 
   msg "Installing local copy of ${MSYSTEM} headers"
   cd ${srcdir}/headers-${MSYSTEM}
