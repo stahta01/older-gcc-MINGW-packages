@@ -8,7 +8,7 @@
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no
 _enable_threads=no
-_build_using_external_compiler=yes
+_build_using_external_compiler=no
 ### Language build options
 _enable_ada=no
 _enable_cxx=no
@@ -127,10 +127,6 @@ prepare() {
 
   GIT_AM="git am --committer-date-is-author-date"
 
-  if [[ "$_build_using_external_compiler" != "yes" ]]; then
-    # IO_REPARSE_TAG_SYMLINK is missing from some of the external compilers
-    ${GIT_AM} ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
-  fi
   ${GIT_AM} ${srcdir}/122-gcc-4.9-Relocate-libintl.patch
   ${GIT_AM} ${srcdir}/131-gcc-4.0-windows-lrealpath-no-force-lowercase-nor-backslash.patch
   ${GIT_AM} ${srcdir}/705-gcc-4.3-texi2pod.pl-Escape-braces-in-regexp-involving-strong.patch
@@ -140,6 +136,12 @@ prepare() {
 
 build() {
   cd ${srcdir}/${_sourcedir}
+
+  git restore libcpp/files.c
+  if [[ "$_build_using_external_compiler" != "yes" ]]; then
+    # IO_REPARSE_TAG_SYMLINK is missing from some of the external compilers
+    git apply ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  fi
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
