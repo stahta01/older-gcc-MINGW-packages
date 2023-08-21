@@ -1,6 +1,11 @@
 # Maintainer:  Tim Stahlhut <stahta01@gmail.com>
 # Contributor: Alexey Pavlov
 
+# If you get these Assembler messages or ones with "bsr" instead of "bsf"
+#   try re-building GCC.
+# Error: suffix or operands invalid for `bsf'
+# Error: operand size mismatch for `bsf'
+
 _include_sub_folder=/${MINGW_CHOST}
 _build_using_external_compiler=no     # Yes for bootstrap part 1 and 2
 _build_headers_only=no                # Yes for bootstrap part 1
