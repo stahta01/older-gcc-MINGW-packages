@@ -133,11 +133,11 @@ prepare() {
 build() {
   cd ${srcdir}/${_sourcedir}
 
-  git restore libcpp/files.c
-  if [[ "$_build_using_external_compiler" != "yes" ]]; then
-    # IO_REPARSE_TAG_SYMLINK is missing from some of the external compilers
-    git apply ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
-  fi
+  #git restore libcpp/files.c
+  #if [[ "$_build_using_external_compiler" != "yes" ]]; then
+    ## IO_REPARSE_TAG_SYMLINK is missing from some of the external compilers
+    #git apply ${srcdir}/111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch
+  #fi
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
