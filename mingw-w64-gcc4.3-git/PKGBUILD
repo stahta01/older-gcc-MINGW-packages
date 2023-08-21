@@ -18,7 +18,7 @@ _enable_libquadmath=no              # Use no for production
 _enable_libgomp=no
 _enable_libstdcxx=yes               # Use yes for production
 _enable_backstrapada=no             # Use no for production
-_build_static_only_gcc=no           # Use no for production
+_build_static_only_gcc=yes          # no fails to re-build GCC
 
 # =========================================== #
 if [[ "$_build_using_external_compiler" == "yes" && "$_enable_libgomp" == "yes" ]]; then
