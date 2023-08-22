@@ -51,11 +51,6 @@ build() {
     ;;
   esac
 
-  local _default_msvcrt=msvcrt
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]] || [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
-    _default_msvcrt=ucrt
-  fi
-
   if [[ "$_build_using_external_compiler" == "yes" ]]; then
     local _ext_compiler=/h/GNAT/2007
     #local _ext_compiler=/h/GNAT/2013
@@ -81,7 +76,6 @@ build() {
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
-    --with-default-msvcrt=${_default_msvcrt} \
     --with-sysroot=${MINGW_PREFIX}${_include_sub_folder} \
     --enable-wildcard \
     ${_crt_configure_args}
