@@ -44,11 +44,6 @@ build() {
   [[ -d ${srcdir}/headers-${MSYSTEM} ]] && rm -rf ${srcdir}/headers-${MSYSTEM}
   mkdir -p ${srcdir}/headers-${MSYSTEM} && cd ${srcdir}/headers-${MSYSTEM}
 
-  local _default_msvcrt=msvcrt
-  if [[ $MINGW_PACKAGE_PREFIX == *-clang-* ]] || [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* ]]; then
-    _default_msvcrt=ucrt
-  fi
-
   echo ""
   echo "CC [gcc] := ${CC-gcc}"
   ${CC-gcc} --version | head -1
@@ -60,8 +55,6 @@ build() {
     --target=${MINGW_CHOST} \
     --prefix=${MINGW_PREFIX}${_include_sub_folder} \
     --enable-sdk=all \
-    --with-default-win32-winnt=0x601 \
-    --with-default-msvcrt=${_default_msvcrt} \
     --enable-secure-api \
     --enable-idl --without-widl
 }
