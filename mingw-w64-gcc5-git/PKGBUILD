@@ -210,14 +210,14 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -266,8 +266,7 @@ build() {
     --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
-    --with-gnu-as --with-gnu-ld \
-    ${_conf}
+    --with-gnu-as --with-gnu-ld
     #--enable-libitm
     #--enable-objc-gc
 
