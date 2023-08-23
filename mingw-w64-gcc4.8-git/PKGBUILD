@@ -15,6 +15,7 @@ _enable_objc=no
 ### build options not normally changed
 _threads="win32"                # Use posix for production; and, win32 for development
 _enable_libquadmath=no          # Use no for production
+_enable_libatomic=no           # Use yes for production
 _enable_gcc_shared=yes          # Use yes for production
 
 # =========================================== #
@@ -34,7 +35,7 @@ pkgname=(
     $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
     $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
 )
-pkgver=4.8.2+d20131016.r49.c0.g3cf2083d636b
+pkgver=4.8.5+d20150623.r51.c1.g2a62b047eca5
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
@@ -54,8 +55,8 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}-ada"
 optdepends=()
 replaces=()
 backup=()
-_commit='3cf2083d636bab3e3a6e91e8b0a0ca1244dff722' # (tag: releases/gcc-4.8.2)
-source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
+#_commit='3cf2083d636bab3e3a6e91e8b0a0ca1244dff722' # (tag: releases/gcc-4.8.2)
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-4.8"
     'gcc-4.8-filename-output.patch'
     'gcc-4.8-lambda-ICE.patch'
     'gcc-4.8-iconv.patch'
@@ -67,7 +68,7 @@ source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#commit=$_com
     '150-windows-lrealpath-no-force-lowercase-nor-backslash.patch'
     '160-mingw-dont-ignore-native-system-header-dir.patch'
     'ktietz-libgomp.patch'
-    '4.8-libatomic-cygwin.patch'
+    '4.8-libatomic-patch-from-cygwin.patch'
     'build-more-gnattools.mingw.patch'
     'libgomp-no-static.patch'
     'gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch'
@@ -84,7 +85,7 @@ sha256sums=('SKIP'
             '0953d65d4fb3d681c76b6d6353e3cc424751a417872435f724d463001da66d43'
             'a7c5daced21086a01b3af9af4c46ee738ccfca6e67b3413771cb7ab81aa2a83f'
             'f05fc823279d764e0e19c7721e34e2c969f1df4492398c9de1764a4ffdba809e'
-            '75c5dcc2219bfb74aba7bfb5df70b17ebde5846b02ffaeb8fdd77a218c4536ab'
+            '65a15c31d8c4e8e9ce0bd084bc834a48f3cb405df0bfff2e63117dd266c88f11'
             'd16e76e0aa9e5a1c239424edc3a6da52785e82849b6e00850f8e2526e7f496d9'
             '1422dccee79ead90dfc729e325074675758e642e38d4af6d0fc870b364c61a8e'
             'e3247fcc84e2b08a3618d73f64f39dd6eef1daf9743819a844ebb8c4d38ebce6'
@@ -156,14 +157,14 @@ prepare() {
   sed -i "/ac_cpp=/s/\$CPPFLAGS/\$CPPFLAGS -O2/" {libiberty,gcc}/configure
 
   # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57653
-  patch -p0 -i ${srcdir}/gcc-4.8-filename-output.patch
+  ##TAS##patch -p0 -i ${srcdir}/gcc-4.8-filename-output.patch
 
   # http://gcc.gnu.org/bugzilla//show_bug.cgi?id=56710 - commit 3d1f8279
-  apply_patch_with_msg gcc-4.8-lambda-ICE.patch
+  ##TAS##apply_patch_with_msg gcc-4.8-lambda-ICE.patch
 
   #apply_patch_with_msg gcc-4.8-iconv.patch
 
-  patch -p0 -i ${srcdir}/4.8-libgcc-references.patch
+  ##TAS##patch -p0 -i ${srcdir}/4.8-libgcc-references.patch
   apply_patch_with_msg gcc-4.8-libstdc++export.patch
   apply_patch_with_msg gcc-4.7-stdthreads.patch
 
@@ -186,14 +187,14 @@ prepare() {
   apply_patch_with_msg ktietz-libgomp.patch
 
   # Enable building libatomic
-  patch -p2 -i ${srcdir}/4.8-libatomic-cygwin.patch
+  ${GIT_AM} ${srcdir}/4.8-libatomic-patch-from-cygwin.patch
 
   # Build aextra tools for Ada
   apply_patch_with_msg build-more-gnattools.mingw.patch
 
   # Fix for -fdump-{ipa|tree|rtl}-all-all not working:
   # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=60484
-  apply_patch_with_msg gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch
+  ##TAS##apply_patch_with_msg gcc-4.8.2-PR-middle-end-60484-fix-dump-path-problems.patch
 
   apply_patch_with_msg handle-use-mingw-ansi-stdio.patch
 }
@@ -235,9 +236,13 @@ build() {
   if [[ "$_enable_libquadmath" != "yes" ]]; then
     extra_config+=('--disable-libquadmath')
   fi
+  #
+  if [[ "$_enable_libatomic" != "yes" ]]; then
+    extra_config+=('--disable-libatomic')
+  fi
 
-  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
-  mkdir -p ${srcdir}/build-${MINGW_CHOST} && cd ${srcdir}/build-${MINGW_CHOST}
+  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
+  mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
 
   # Replace the MSys2 FLAG values
   export LDFLAGS="-pipe"
@@ -247,14 +252,14 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -286,11 +291,9 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}/${MINGW_CHOST}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-static \
-    --enable-libatomic \
     --enable-threads=${_threads} \
     --enable-graphite \
     --enable-fully-dynamic-string \
@@ -313,8 +316,7 @@ build() {
     --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
-    --with-gnu-as --with-gnu-ld \
-    ${_conf}
+    --with-gnu-as --with-gnu-ld
 
   ## While we're debugging -fopenmp problems at least.
   ## .. we may as well not strip anything.
@@ -343,7 +345,10 @@ package_mingw-w64-gcc-libs() {
   mkdir -p ${pkgdir}${MINGW_PREFIX}/bin
 
   cd ${srcdir}${MINGW_PREFIX}
-  cp bin/{libatomic*,libgcc*,libgomp*,libssp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  cp bin/{libgcc*,libgomp*,libssp*,libstdc*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  if [[ "$_enable_libatomic" == "yes" ]]; then
+    cp bin/libatomic*.dll ${pkgdir}${MINGW_PREFIX}/bin/
+  fi
   if [[ "$_enable_libquadmath" == "yes" ]]; then
     cp bin/libquadmath*.dll ${pkgdir}${MINGW_PREFIX}/bin/
   fi
@@ -393,7 +398,9 @@ package_mingw-w64-gcc() {
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/collect2.exe ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/crt*.o ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/liblto* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
-  cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libatomic* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  if [[ "$_enable_libatomic" == "yes" ]]; then
+    cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libatomic* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  fi
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libgcc* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libgcov.* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libgomp.* ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
