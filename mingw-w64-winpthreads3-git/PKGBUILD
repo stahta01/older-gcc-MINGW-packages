@@ -10,7 +10,21 @@ _realname=winpthreads
 pkgbase=mingw-w64-${_realname}3-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
 pkgver=3.3.0.r61.g8c7e00886
-pkgrel=1
+_gcc_version=$(gcc -dumpversion)
+echo "_gcc_version := $_gcc_version"
+if [[ ${_gcc_version:0:1} == "6" ]]; then
+  pkgrel=1
+elif [[ ${_gcc_version:0:1} == "5" ]]; then
+  pkgrel=2
+elif [[ ${_gcc_version:0:3} == "4.9" ]]; then
+  pkgrel=3
+elif [[ ${_gcc_version:0:3} == "4.8" ]]; then
+  pkgrel=4
+elif [[ ${_gcc_version:0:3} == "4.7" ]]; then
+  pkgrel=5
+else
+  pkgrel=0
+fi
 _commit='8c7e00886f69c448270376601fe1c016392e26f9' # 3.4.0.3935.8c7e00886
 pkgdesc="MinGW-w64 winpthreads library"
 url="https://mingw-w64.sourceforge.io/"
