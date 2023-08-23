@@ -248,7 +248,7 @@ build() {
   #fi
 
   if check_option "debug" "n"; then
-    make BOOT_CFLAGS='-O2' all
+    make CFLAGS_FOR_TARGET='-O2' BOOT_CFLAGS='-O2' all
   else
     make all
   fi
