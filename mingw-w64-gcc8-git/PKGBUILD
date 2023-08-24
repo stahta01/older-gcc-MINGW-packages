@@ -11,7 +11,8 @@ _enable_bootstrap=no               # Use yes for production
 _build_using_external_compiler=no   # Use no for production
 _enable_isl=no
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
-options=('staticlibs' '!emptydirs' 'strip' '!debug')
+#options=('staticlibs' '!emptydirs' 'strip' '!debug')
+options=('staticlibs' '!emptydirs' '!strip' '!debug')
 ### Language build options
 _enable_ada=yes
 _enable_fortran=no
@@ -72,7 +73,6 @@ makedepends=($( [ "$_build_using_external_compiler" != "yes" ] && [ "$_enable_bo
 #checkdepends=('dejagnu')
 optdepends=()
 
-_branch=releases/gcc-8 # (tag: releases/gcc-8.5.0)                             # builds once? yes   builds itself? yes
 # _commit=8cd3bffead2ed1d1998c190865694f920fbc93ab # (tag: releases/gcc-8.4.0) # builds once? yes   builds itself? yes
 # _commit=4c44b708f11eec6fc02456e8577708d01ca92327 # (tag: releases/gcc-8.3.0) # builds once? yes   builds itself? yes
 # _commit=ddeb81e76461fc0075542d436dc962f3cf6fac92 # (tag: releases/gcc-8.2.0) # builds once? yes   builds itself ???
@@ -80,7 +80,7 @@ _branch=releases/gcc-8 # (tag: releases/gcc-8.5.0)                             #
 # _commit=aa90195aedfa348284c6e4e8ce59dc1b734f1d71 # (tag: basepoints/gcc-8)   # builds once? yes   builds itself? yes
 # _commit=70f4fdeb67fe065041a52304bb20f6ce701b1cf7 # (tag: basepoints/gcc-7)   # builds once? yes   builds itself? yes
 
-source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
+source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-8"
 #source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
         "0002-Relocate-libintl.patch"
         "0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch"
@@ -128,8 +128,7 @@ pkgver() {
 
 prepare() {
   cd ${srcdir}/${_sourcedir}
-  git am --abort || true
-  git clean -fxd
+
   _git_base_commit=$(git rev-parse HEAD)
   GIT_AM="git am --committer-date-is-author-date"
   ${GIT_AM} ${srcdir}/0002-Relocate-libintl.patch
@@ -142,9 +141,7 @@ prepare() {
   ${GIT_AM} ${srcdir}/0010-Fix-using-large-PCH.patch
   ${GIT_AM} ${srcdir}/0011-Enable-shared-gnat-implib.patch
   ${GIT_AM} ${srcdir}/0014-clone_function_name_1-Retain-any-stdcall-suffix.patch
-  #if [ "${_branch}" == "releases/gcc-8" ]; then
-    ##TAS#${GIT_AM} ${srcdir}/0019-gcc-8-branch-Backport-patches-for-std-filesystem-from-master.patch
-  #fi
+  ##TAS#${GIT_AM} ${srcdir}/0019-gcc-8-branch-Backport-patches-for-std-filesystem-from-master.patch
   ${GIT_AM} ${srcdir}/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
   ${GIT_AM} ${srcdir}/0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch
 }
@@ -225,14 +222,14 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -288,7 +285,6 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     "${configure_building_opts[@]}" \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-shared --enable-static \
@@ -313,8 +309,7 @@ build() {
     --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
-    --with-gnu-as --with-gnu-ld \
-    ${_conf}
+    --with-gnu-as --with-gnu-ld
     #--enable-libitm
     #--enable-objc-gc
     #--with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
@@ -327,7 +322,11 @@ build() {
     #sed -i 's,^STRIP_FOR_TARGET=.*$,STRIP_FOR_TARGET=true,g' Makefile
   #fi
 
-  make all # -j1 # || make all V=1 -j1
+  if check_option "debug" "n"; then
+    make CFLAGS_FOR_TARGET='-O2' BOOT_CFLAGS='-O2' all
+  else
+    make all # -j1 # || make all V=1 -j1
+  fi
 
   rm -rf ${srcdir}${MINGW_PREFIX}
 
