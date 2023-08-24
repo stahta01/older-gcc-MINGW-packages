@@ -68,8 +68,6 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
 #checkdepends=('dejagnu')
 optdepends=()
 
-_branch=releases/gcc-7
-
 # _commit=b2d961e7342b5ba4e57adfa81cb189b738d10901 # releases/gcc-7            #
 # _commit=adafdb1e7212d53a0ff4c58f0f42dc96200affbb # (tag: releases/gcc-7.4.0) #
 # _commit=6184085fc664265dc78fd1ad4204c0cbef202628 # (tag: releases/gcc-7.3.0) #
@@ -77,7 +75,7 @@ _branch=releases/gcc-7
 # _commit=303f81ad7e9f278d5ea5a8bd4193ed9da76bc251 # (tag: releases/gcc-7.1.0) #
 # _commit=70f4fdeb67fe065041a52304bb20f6ce701b1cf7 # (tag: basepoints/gcc-7)   #
 
-source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
+source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-7"
 #source=(${_sourcedir}::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
         "0002-Relocate-libintl.patch"
         "0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch"
