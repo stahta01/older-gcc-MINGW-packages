@@ -23,10 +23,10 @@ cp -f ./mingw-w64-gcc7-git/mingw-w64-i686-gcc-ada-git-7.5.0+d20191114.r1.c15.gb2
 mkdir -p packages/gcc7.5.0_toolchain_mingw_UCRT64_packages
 
 rm -f ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/*.zst
-cp -f ./mingw-w64-headers6-git/mingw-w64-ucrt-x86_64-headers-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
-cp -f ./mingw-w64-crt6-git/mingw-w64-ucrt-x86_64-crt-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
-cp -f ./mingw-w64-winpthreads6-git/mingw-w64-ucrt-x86_64-libwinpthread-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
-cp -f ./mingw-w64-winpthreads6-git/mingw-w64-ucrt-x86_64-winpthreads-git-6.0.0.r56.gd72c4fe62-1-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-headers7-git/mingw-w64-ucrt-x86_64-headers-git-7.0.0.r5.gb7f51b148-1-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-crt7-git/mingw-w64-ucrt-x86_64-crt-git-7.0.0.r5.gb7f51b148-3-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-winpthreads7-git/mingw-w64-ucrt-x86_64-libwinpthread-git-7.0.0.r5.gb7f51b148-3-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-winpthreads7-git/mingw-w64-ucrt-x86_64-winpthreads-git-7.0.0.r5.gb7f51b148-3-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc7-git/mingw-w64-ucrt-x86_64-gcc-libs-git-7.5.0+d20191114.r1.c15.gb2d961e7342b-2-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc7-git/mingw-w64-ucrt-x86_64-gcc-git-7.5.0+d20191114.r1.c15.gb2d961e7342b-2-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc7-git/mingw-w64-ucrt-x86_64-gcc-ada-git-7.5.0+d20191114.r1.c15.gb2d961e7342b-2-any.pkg.tar.zst ./packages/gcc7.5.0_toolchain_mingw_UCRT64_packages/
