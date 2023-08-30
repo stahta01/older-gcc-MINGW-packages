@@ -7,6 +7,8 @@
 ### Major build options
 _include_sub_folder=/${MINGW_CHOST}
 _enable_bootstrap=no    # Use yes for production
+_enable_isl=no          # Use yes for production
+options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 ### Language build options
 _enable_ada=yes
 _enable_fortran=no
@@ -15,12 +17,9 @@ _enable_objc=no          # Use no for production
 _threads="win32"         # Use posix for production; and, win32 for development
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes      # Use yes for production
+_enable_gcc_shared=yes   # Use yes for production
 
 # =========================================== #
-#if [[ $MSYSTEM == UCRT64 && "$_enable_ada" == "yes" ]]; then
-  #_enable_ada=no
-  #warning "Currently UCRT64 cannot build Ada; so, Ada was disabled"
-#fi
 if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
   _enable_libgomp=no
   warning "UCRT fails to build libgomp; so, libgomp was disabled"
@@ -35,8 +34,8 @@ _realname=gcc
 _sourcedir=${_realname}-git
 pkgbase=mingw-w64-${_realname}6-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
-         "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git"
-         $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran-git")
+         $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
+         $( [ "$_enable_gcc_shared" == "yes" ] && [ "$_enable_fortran" == "yes" ] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran-git")
          $([[ "$_enable_fortran" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-fortran-git")
          $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
@@ -63,7 +62,6 @@ makedepends=('git'
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
-options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 ISL_VERSION=0.16.1
 noextract=("isl-${ISL_VERSION}.tar.bz2")
 source=("https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.bz2"
@@ -179,6 +177,7 @@ prepare() {
   cd ${srcdir}
   # ISL work start
     rm -fr ${srcdir}/${_sourcedir}/isl
+  if [ "$_enable_isl" == "yes" ]; then
     _extract_to_gcc_folder          isl-${ISL_VERSION}.tar.bz2
     cd ${srcdir}/${_sourcedir}/isl
     apply_patch_with_msg \
@@ -186,6 +185,7 @@ prepare() {
       isl-0.14.1-no-undefined.patch
 
     autoreconf -fi
+  fi
   # ISL work finish
 
   cd ${srcdir}/${_sourcedir}
@@ -204,7 +204,6 @@ prepare() {
     libstdc++-v3/src/filesystem/fs-posix.h \
     libstdc++-v3/src/filesystem/fs-win32.h
 
-  git am --abort || true
   #apply_patch_with_msg 0001-gcc-6-branch-gfortran-incorrect-reading-of-values-fr.patch || true
   ${GIT_AM} ${srcdir}/0002-Relocate-libintl.patch
   ${GIT_AM} ${srcdir}/0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
@@ -276,6 +275,21 @@ build() {
   elif [[ "$_enable_bootstrap" == "no" ]]; then
     extra_config+=("--disable-bootstrap")
   fi
+  #
+  if [ "$_enable_isl" == "yes" ]; then
+    extra_config+=('--disable-isl-version-check')
+    extra_config+=("--with-isl=${MINGW_PREFIX}")
+    extra_config+=('--enable-graphite')
+  else
+    extra_config+=('--without-isl')
+    extra_config+=('--disable-graphite')
+  fi
+  #
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+    extra_config+=("--enable-shared")
+  elif [[ "$_enable_gcc_shared" == "no" ]]; then
+    extra_config+=("--disable-shared")
+  fi   
 
   case "${CARCH}" in
     i686)
@@ -316,10 +330,9 @@ build() {
     --target=${MINGW_CHOST} \
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
-    --enable-shared --enable-static \
+    --enable-static \
     --enable-libatomic \
     --enable-threads=${_threads} \
     --enable-graphite \
@@ -348,7 +361,7 @@ build() {
   rm -rf ${srcdir}${MINGW_PREFIX}
 
   make -j1 DESTDIR=${srcdir} install
-  if [ "$_enable_ada" == "yes" ]; then
+  if [[ "$_enable_ada" == "yes" && "$_enable_gcc_shared" == "yes" ]]; then
     mv ${srcdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adalib/*.dll ${srcdir}${MINGW_PREFIX}/bin/
   fi
 }
@@ -403,9 +416,11 @@ package_mingw-w64-gcc-git() {
            "${MINGW_PACKAGE_PREFIX}-headers"
            "${MINGW_PACKAGE_PREFIX}-libiconv"
            "${MINGW_PACKAGE_PREFIX}-mpc"
-           "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}"
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest"
            "${MINGW_PACKAGE_PREFIX}-zlib")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}")
+  fi
   if [[ "$_threads" == "posix" ]]; then
      depends+=("${MINGW_PACKAGE_PREFIX}-winpthreads")
   fi
@@ -449,7 +464,9 @@ package_mingw-w64-gcc-git() {
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/cc1plus.exe        ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
 
   cp lib/libatomic*                                      ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
-  cp lib/libgcc*                                         ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+    cp lib/libgcc*                                       ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
+  fi
   cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/libgcc*            ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
 
   if [[ "$_enable_libgomp" == "yes" ]]; then
@@ -500,6 +517,12 @@ package_mingw-w64-gcc-git() {
   cp share/man/man7/gpl.7*                               ${pkgdir}${MINGW_PREFIX}/share/man/man1/
   cp share/man/man1/g++.1*                               ${pkgdir}${MINGW_PREFIX}/share/man/man1/
 
+  if [[ "$_enable_gcc_shared" != "yes" ]]; then
+    # License files
+    install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING3"
+    install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB"
+  fi
+
   # install "custom" system gdbinit
   install -D -m644 ${srcdir}/gdbinit ${pkgdir}${MINGW_PREFIX}/etc/gdbinit
   sed -i 's|%GCC_NAME%|gcc-'${pkgver%%+*}'|g' ${pkgdir}${MINGW_PREFIX}/etc/gdbinit
@@ -518,8 +541,10 @@ package_mingw-w64-gcc-libgfortran-git() {
 
 package_mingw-w64-gcc-fortran-git() {
   pkgdesc="GNU Compiler Collection (Fortran) for MinGW-w64"
-  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}-git=${pkgver}-${pkgrel}"
-           "${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran=${pkgver%%+*}-${pkgrel}")
+  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}-git=${pkgver}-${pkgrel}")
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libgfortran-git=${pkgver}-${pkgrel}")
+  fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
   conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}-fortran")
 
@@ -551,7 +576,9 @@ package_mingw-w64-gcc-ada-git() {
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/gnat*.exe ${pkgdir}${MINGW_PREFIX}/bin/
 
-  cp bin/{libgnarl*,libgnat*}.dll                       ${pkgdir}${MINGW_PREFIX}/bin/
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
+    cp bin/{libgnarl*,libgnat*}.dll                       ${pkgdir}${MINGW_PREFIX}/bin/
+  fi
 
   mkdir -p ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}
   cp -r lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adainclude     ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
