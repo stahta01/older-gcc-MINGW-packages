@@ -10,7 +10,23 @@ pkgbase=mingw-w64-${_realname}5-git
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-svn")
 pkgver=5.0.4.r16.g715ecca90
-pkgrel=1
+_gcc_version=$(gcc -dumpversion)
+echo "_gcc_version := $_gcc_version"
+if [[ ${_gcc_version:0:1} == "8" ]]; then
+  pkgrel=1
+elif [[ ${_gcc_version:0:1} == "7" ]]; then
+  pkgrel=2
+elif [[ ${_gcc_version:0:1} == "6" ]]; then
+  pkgrel=3
+elif [[ ${_gcc_version:0:1} == "5" ]]; then
+  pkgrel=4
+elif [[ ${_gcc_version:0:3} == "4.9" ]]; then
+  pkgrel=5
+elif [[ ${_gcc_version:0:3} == "4.8" ]]; then
+  pkgrel=6
+else
+  pkgrel=0
+fi
 _commit='715ecca90d57f240ea68561e95bfe3ce7e912202' # 5.0.4.r16.g715ecca90
 pkgdesc='MinGW-w64 CRT for Windows'
 arch=('any')
