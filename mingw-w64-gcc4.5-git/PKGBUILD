@@ -10,6 +10,7 @@ _enable_bootstrap=no
 _enable_threads=yes
 # When yes, texinfo uninstalled and gcc needs to be installed
 _build_using_external_compiler=no   # Use no for production
+options=('staticlibs' '!emptydirs' '!strip' 'debug')
 ### Language build options
 _enable_ada=yes
 _enable_cxx=yes                     # Use yes for production
@@ -18,7 +19,7 @@ _threads="win32"                    # posix failed to work; it was added in GCC 
 _enable_libquadmath=no              # Use no for production
 _enable_libgomp=no
 _enable_libstdcxx=yes               # Use yes for production
-_build_static_only_gcc=no           # Use no for production
+_enable_gcc_shared=yes              # Use yes for production
 
 # =========================================== #
 if [[ "$_build_using_external_compiler" == "yes" && "$_enable_libgomp" == "yes" ]]; then
@@ -29,8 +30,8 @@ if [[ "$_build_using_external_compiler" == "yes" && "$_enable_libstdcxx" == "yes
   _enable_libstdcxx=no
   warning "external compiler fails to build libstdcxx; so, libstdcxx was disabled"
 fi
-if [[ "$_build_using_external_compiler" == "yes" && "$_build_static_only_gcc" == "no" ]]; then
-  _build_static_only_gcc=yes
+if [[ "$_build_using_external_compiler" == "yes" && "$_enable_gcc_shared" == "yes" ]]; then
+  _enable_gcc_shared=no
   warning "external compiler fails to build shared; so, shared was disabled"
 fi
 if [[ "$_enable_cxx" != "yes" && "$_enable_libstdcxx" == "yes" ]]; then
@@ -43,14 +44,14 @@ _realname=gcc
 pkgbase=mingw-w64-${_realname}4.5-git
 pkgname=(
   "${MINGW_PACKAGE_PREFIX}-${_realname}-git" # This package must be first in this list
-  $([[ "$_build_static_only_gcc" != "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
+  $([[ "$_enable_gcc_shared" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git")
 )
 pkgver=4.5.4+d20120702.r42.c7.g41eccc86828f
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1
 else
   # 2 _build_using_external_compiler=no
-  # 3 and _build_static_only_gcc=no 
+  # 3 and _enable_gcc_shared=yes 
   # 4 and _enable_threads=yes
   # 5 and _enable_cxx=yes
   pkgrel=5 # _enable_cxx=yes
@@ -76,10 +77,8 @@ makedepends=($([[ "$_build_using_external_compiler" != "yes" ]] && echo "${MINGW
              "${MINGW_PACKAGE_PREFIX}-zlib")
 #checkdepends=('dejagnu')
 optdepends=()
-options=('staticlibs' '!emptydirs' '!strip' 'debug')
-_branch=releases/gcc-4.5
 
-source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=${_branch}"
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-4.5"
         'conftest.adb'
         '111-gcc-4.0-fix-for-windows-not-minding-non-existant-parent-dirs.patch'
         '122-gcc-4.9-Relocate-libintl.patch'
@@ -126,10 +125,6 @@ pkgver() {
 
 prepare() {
   cd ${srcdir}/${_sourcedir}
-
-  git am --abort || true
-  
-  git clean -fxd
 
   _git_base_commit=$(git rev-parse HEAD)
 
@@ -251,7 +246,7 @@ build() {
     extra_config+=("--enable-threads=${_threads}")
   fi
   #
-  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
     extra_config+=("--enable-shared")
   else
     extra_config+=("--disable-shared")
@@ -273,14 +268,14 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -325,7 +320,6 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-static \
@@ -346,8 +340,7 @@ build() {
     --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
-    --with-gnu-as --with-gnu-ld \
-    ${_conf}
+    --with-gnu-as --with-gnu-ld
     #--enable-libitm
     #--enable-objc-gc
 
@@ -369,7 +362,7 @@ package_gcc-git() {
            "${MINGW_PACKAGE_PREFIX}-windows-default-manifest")
   depends+=("${MINGW_PACKAGE_PREFIX}-binutils")
   depends+=("${MINGW_PACKAGE_PREFIX}-libiconv")
-  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
     depends+=("${MINGW_PACKAGE_PREFIX}-${_realname}-libs-git=${pkgver}-${pkgrel}")
   fi
   provides=("${MINGW_PACKAGE_PREFIX}-${_realname}"
@@ -385,7 +378,7 @@ package_gcc-git() {
 
   make -j1 DESTDIR="${pkgdir}" install
 
-  if [[ "$_build_static_only_gcc" != "yes" ]]; then
+  if [[ "$_enable_gcc_shared" == "yes" ]]; then
     [[ -d ${srcdir}/dlls ]] && rm -rf ${srcdir}/dlls
     mkdir -p ${srcdir}/dlls
     mv ${pkgdir}${MINGW_PREFIX}/bin/*.dll ${srcdir}/dlls/
@@ -397,7 +390,7 @@ package_gcc-git() {
   rm -f ${pkgdir}${MINGW_PREFIX}/share/info/dir
   rm -f ${pkgdir}${MINGW_PREFIX}/lib/libiberty.a
 
-  if [[ "$_build_static_only_gcc" == "yes" ]]; then
+  if [[ "$_enable_gcc_shared" != "yes" ]]; then
     # License files
     install -Dm644 "${srcdir}/${_sourcedir}/COPYING3"        "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING3"
     install -Dm644 "${srcdir}/${_sourcedir}/COPYING.LIB"     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB"
