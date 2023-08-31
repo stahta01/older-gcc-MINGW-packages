@@ -19,7 +19,6 @@ _threads="win32"                # Use posix for production; and, win32 for devel
 _enable_libquadmath=no          # Use no for production
 _enable_libgomp=yes             # Use yes for production
 _enable_backstrapada=no         # Use no for production
-#_try_to_use_static_libs=no      # Use no for production; yes had mpfr build errors
 _enable_gcc_shared=yes          # Use yes for production
 
 # =========================================== #
@@ -43,7 +42,7 @@ pkgname=(
   $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada-git")
   $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
 )
-pkgver=4.9.2+d20141030.r50.c1.gc8be0366b55c
+pkgver=4.9.4+d20160726.r51.c1.g4f18db57daff
 pkgrel=1
 _sourcedir=${_realname}-git
 pkgdesc="GCC for the MinGW-w64"
@@ -73,8 +72,8 @@ noextract=("isl-${ISL_VERSION}.tar.bz2" "mpfr-${MPFR_VERSION}.tar.bz2"
            "cloog-${CLOOG_VERSION}.tar.gz"
            "gmp-${GMP_VERSION}.tar.xz" "mpc-${MPC_VERSION}.tar.gz")
 # _commit='4f18db57daffc62a373e30d93c9552f2b94adf09' # (HEAD -> releases/gcc-4.9)
-_commit='c8be0366b55cdb3233abcf79abe2c5ddc6f82cb9' # (tag: releases/gcc-4.9.2)
-source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#commit=$_commit"
+# _commit='c8be0366b55cdb3233abcf79abe2c5ddc6f82cb9' # (tag: releases/gcc-4.9.2)
+source=("${_sourcedir}"::"git+https://github.com/gcc-mirror/gcc.git#branch=releases/gcc-4.9"
         https://libisl.sourceforge.io/isl-${ISL_VERSION}.tar.bz2
         ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-${CLOOG_VERSION}.tar.gz
         ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-${MPFR_VERSION}.tar.bz2
@@ -211,10 +210,10 @@ prepare() {
   apply_patch_with_msg 180-pr-57440.patch
 
   # Compatibility with isl>=0.12.2
-  patch -p0 -i ${srcdir}/190-isl-0.13.patch
+  ##TAS##patch -p0 -i ${srcdir}/190-isl-0.13.patch
 
   # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57653
-  patch -p0 -i ${srcdir}/200-gcc-4.8-filename-output.patch
+  ##TAS##patch -p0 -i ${srcdir}/200-gcc-4.8-filename-output.patch
 
   # Kai's libgomp fix.
   apply_patch_with_msg 210-ktietz-libgomp.patch
@@ -307,24 +306,19 @@ build() {
   # Replace the MSys2 FLAG values
   export LDFLAGS="-pipe"
   export CPPFLAGS=""
-  #if [[ "$_try_to_use_static_libs" == "yes" ]]; then
-    #export CFLAGS="-pipe -static"
-    #export CXXFLAGS="-pipe -static" 
-  #else
-    export CFLAGS="-pipe"
-    export CXXFLAGS="-pipe"
-  #fi
+  export CFLAGS="-pipe"
+  export CXXFLAGS="-pipe"
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -359,7 +353,6 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --with-gxx-include-dir=${MINGW_PREFIX}/include/c++/${pkgver%%+*} \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-shared --enable-static \
@@ -384,8 +377,7 @@ build() {
     --with-{gmp,mpfr,mpc}=${MINGW_PREFIX} \
     --with-pkgversion="Rev${pkgrel} ${MSYSTEM}, Built by older-gcc-MINGW-packages project" \
     --with-bugurl="https://github.com/stahta01/older-gcc-MINGW-packages/issues" \
-    --with-gnu-as --with-gnu-ld \
-    ${_conf}
+    --with-gnu-as --with-gnu-ld
     #--enable-libitm
     #--enable-objc-gc
 
@@ -581,18 +573,6 @@ package_mingw-w64-gcc-ada() {
 
   cd ${srcdir}${MINGW_PREFIX}
   cp bin/gnat*.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatbind.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatchop.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatclean.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatdll.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatfind.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatkr.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatlink.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatls.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatmake.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatname.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatprep.exe ${pkgdir}${MINGW_PREFIX}/bin/
-  # cp bin/gnatxref.exe ${pkgdir}${MINGW_PREFIX}/bin/
 
   cp bin/{libgnarl*,libgnat*}.dll ${pkgdir}${MINGW_PREFIX}/bin/
   mkdir -p ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/adalib
