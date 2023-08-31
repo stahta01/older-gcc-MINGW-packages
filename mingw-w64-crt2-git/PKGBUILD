@@ -15,7 +15,7 @@ _sourcedir=mingw-w64-git
 pkgbase=mingw-w64-${_realname}2-git
 pkgname=($([[ "$_build_headers_only" != "yes" ]] && echo  "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
          "${MINGW_PACKAGE_PREFIX}-headers-git")
-pkgver=2.0.6.r0.g06c5a4241
+pkgver=2.0.9.r0.gea32a0c5b
 if [[ "$_build_using_external_compiler" == "yes" ]]; then
   pkgrel=1 # Build using 2007 GNAT GCC 4.1
 else
