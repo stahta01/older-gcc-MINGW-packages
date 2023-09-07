@@ -12,10 +12,10 @@ _enable_threads=yes      # Use yes for production; no fails to work as wanted
 _enable_static_gcc=no    # Use no for production; yes gives gmp build error
 _enable_bootstrap=no    # Use yes for production
 # Language build options
+_enable_ada=yes          # Use yes for production
 _enable_objc=no          # Use no for production
 _enable_jit=no           # Use no for production
-_enable_ada=no
-_enable_d=no            # Use yes for production
+_enable_d=no             # Use no for production
 _enable_fortran=no      # Use yes for production
 # Module build options
 _enable_libstdcxx=yes    # Use yes for production
