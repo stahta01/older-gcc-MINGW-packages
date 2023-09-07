@@ -7,6 +7,7 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-x86_64-libwinpthread-git-9.0.0.r32.
 cp -f ./mingw-w64-winpthreads9-git/mingw-w64-x86_64-winpthreads-git-9.0.0.r32.gae63cde27-1-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-x86_64-gcc-libs-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-x86_64-gcc-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_64_packages/
+cp -f ./mingw-w64-gcc10/mingw-w64-x86_64-gcc-ada-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_64_packages/
 
 mkdir -p packages/gcc10.3.0_toolchain_mingw_32_packages
 
@@ -17,6 +18,7 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-i686-libwinpthread-git-9.0.0.r32.ga
 cp -f ./mingw-w64-winpthreads9-git/mingw-w64-i686-winpthreads-git-9.0.0.r32.gae63cde27-1-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_32_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-i686-gcc-libs-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_32_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-i686-gcc-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_32_packages/
+cp -f ./mingw-w64-gcc10/mingw-w64-i686-gcc-ada-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_32_packages/
 
 mkdir -p packages/gcc10.3.0_toolchain_mingw_UCRT64_packages
 
@@ -27,3 +29,4 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-ucrt-x86_64-libwinpthread-git-9.0.0
 cp -f ./mingw-w64-winpthreads9-git/mingw-w64-ucrt-x86_64-winpthreads-git-9.0.0.r32.gae63cde27-1-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-ucrt-x86_64-gcc-libs-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc10/mingw-w64-ucrt-x86_64-gcc-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-gcc10/mingw-w64-ucrt-x86_64-gcc-ada-10.3.0-7-any.pkg.tar.zst ./packages/gcc10.3.0_toolchain_mingw_UCRT64_packages/
