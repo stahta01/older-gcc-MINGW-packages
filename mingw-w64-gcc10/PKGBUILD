@@ -293,14 +293,14 @@ build() {
 
   case "${CARCH}" in
     i686)
-      local _conf="--disable-sjlj-exceptions --with-dwarf2"
+      extra_config+=("--disable-sjlj-exceptions")
+      extra_config+=("--with-dwarf2")
+      extra_config+=("--with-arch=i686")
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=i686
     ;;
 
     x86_64)
-      local _arch=x86-64
-      local _conf=""
+      extra_config+=("--with-arch=x86-64")
     ;;
   esac
 
@@ -343,7 +343,6 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --enable-checking=release \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-shared --enable-static \
@@ -368,8 +367,7 @@ build() {
     --with-gnu-as --with-gnu-ld \
     --with-boot-ldflags="${LDFLAGS} -static-libstdc++ -static-libgcc" \
     LDFLAGS_FOR_TARGET="${_LDFLAGS_FOR_TARGET}" \
-    --enable-linker-plugin-flags='LDFLAGS=-static-libstdc++\ -static-libgcc\ '"${_LDFLAGS_FOR_TARGET// /\\ }"'\ -Wl,--stack,12582912' \
-    ${_conf}
+    --enable-linker-plugin-flags='LDFLAGS=-static-libstdc++\ -static-libgcc\ '"${_LDFLAGS_FOR_TARGET// /\\ }"'\ -Wl,--stack,12582912'
 
   # While we're debugging -fopenmp problems at least.
   # .. we may as well not strip anything.
