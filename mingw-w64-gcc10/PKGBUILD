@@ -23,13 +23,16 @@ _enable_libatomic=yes    # Use yes for production
 # build options not normally changed
 _threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
+_enable_libgomp=yes
 # libitm* and libvtv* are disbled until fixed
 _enable_libvtv=no        # Use no for production
 #
 # =========================================== #
-if [[ "$_enable_threads" == "yes" && "$_threads" == "posix" ]]; then
-  _enable_libgomp=no   # Yes failed to work unknown reason
-else
+if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  _enable_libgomp=no
+  warning "UCRT fails to build libgomp; so, libgomp was disabled"
+fi
+if [[ "$_enable_threads" != "yes" || "$_threads" != "posix" ]]; then
   _enable_libgomp=no
   _enable_libatomic=no
 fi
@@ -53,10 +56,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit")
         )
-#_snapshot=20181214
 pkgver=10.3.0
-#_majorver=${pkgver:0:1}
-#_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
 pkgrel=7
 pkgdesc="GCC for the MinGW-w64"
@@ -83,7 +83,6 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
 optdepends=()
 options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${pkgver}.tar.xz"{,.sig}
-        #https://www.mirrorservice.org/sites/sourceware.org/pub/gcc/snapshots/${_majorver}-${_snapshot}/gcc-${_majorver}-${_snapshot}.tar.xz
         "gdbinit"
         0002-Relocate-libintl.patch
         0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
@@ -355,7 +354,6 @@ build() {
     --disable-libstdcxx-pch \
     "${extra_config[@]}" \
     --enable-lto \
-    --disable-libgomp \
     --disable-multilib \
     --disable-rpath \
     --disable-win32-registry \
