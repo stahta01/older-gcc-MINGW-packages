@@ -57,7 +57,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit-git")
         )
-pkgver=10.5.0+d20230707.r1.c0.gd04fe5541c53
+pkgver=10.5.0+d20230707.r1.c1.gd04fe5541c53
 pkgrel=1
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
@@ -178,13 +178,16 @@ prepare() {
   GIT_AM="git am --committer-date-is-author-date"
 
   del_file_exists intl/canonicalize.c intl/canonicalize.h \
-    intl/relocatex.c intl/relocatex.h \
-    gcc/jit/jit-w32.h gcc/jit/jit-w32.c \
-    gcc/testsuite/gcc.c-torture/execute/20210505-1.c
+    intl/relocatex.c intl/relocatex.h
+    #gcc/jit/jit-w32.h gcc/jit/jit-w32.c \
+    #gcc/testsuite/gcc.c-torture/execute/20210505-1.c
+
+  git am --abort || true
+
+  ${GIT_AM} ${srcdir}/0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
 
   apply_patch_with_msg \
     0002-Relocate-libintl.patch \
-    0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch \
     0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch \
     0005-Windows-Don-t-ignore-native-system-header-dir.patch \
     0006-Windows-New-feature-to-allow-overriding.patch \
