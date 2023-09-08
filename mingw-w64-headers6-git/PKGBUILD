@@ -24,6 +24,7 @@ else
   pkgrel=0
 fi
   _commit='d72c4fe62568a216d52dca47ca8bace4e220d84f' # 6.0.0.r56.gd72c4fe62  # UCRT GCC builds itself? Yes
+#  _commit='127484396cab59c56466c10374cb8b17c04c0e23' # before __acrt_iob_func
 # _commit='7b26999f1dad11bfba0d1f1735df38dfbea5a7b1' # 6.0.0.r13.g7b26999f1  # UCRT GCC builds itself? No
 arch=('any')
 url="https://mingw-w64.sourceforge.io/"
