@@ -10,6 +10,7 @@
 _include_sub_folder=       #/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production; no fails to work as wanted
 _enable_bootstrap=no    # Use yes for production
+options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 # Language build options
 _enable_ada=yes          # Use yes for production
 _enable_objc=no          # Use no for production
@@ -80,7 +81,6 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zstd")
 #checkdepends=('dejagnu')
 optdepends=()
-options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${pkgver}.tar.xz"{,.sig}
         "gdbinit"
         0002-Relocate-libintl.patch
