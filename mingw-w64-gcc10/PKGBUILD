@@ -9,7 +9,6 @@
 ### Major build options
 _include_sub_folder=       #/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production; no fails to work as wanted
-_enable_static_gcc=no    # Use no for production; yes gives gmp build error
 _enable_bootstrap=no    # Use yes for production
 # Language build options
 _enable_ada=yes          # Use yes for production
@@ -232,13 +231,8 @@ build() {
   # Replace the MSys2 default FLAG values
   export LDFLAGS="-pipe"
   export CPPFLAGS=""
-  if [[ "$_enable_static_gcc" == "yes" ]]; then
-    export CFLAGS="-pipe -static-libgcc -static-libstdc++ -static"
-    export CXXFLAGS="-pipe -static-libgcc -static-libstdc++ -static"
-  else
-    export CFLAGS="-pipe"
-    export CXXFLAGS="-pipe"
-  fi
+  export CFLAGS="-pipe"
+  export CXXFLAGS="-pipe"
 
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
