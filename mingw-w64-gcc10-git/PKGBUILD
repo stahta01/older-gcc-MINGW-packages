@@ -16,7 +16,7 @@ _enable_ada=yes          # Use yes for production
 _enable_objc=no          # Use no for production
 _enable_jit=no           # Use no for production
 _enable_d=no             # Use no for production
-_enable_fortran=no      # Use yes for production
+_enable_fortran=no       # Use no for production
 # Module build options
 _enable_libstdcxx=yes    # Use yes for production
 _enable_libatomic=yes    # Use yes for production
@@ -28,10 +28,10 @@ _enable_libgomp=yes
 _enable_libvtv=no        # Use no for production
 #
 # =========================================== #
-if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
-  _enable_libgomp=no
-  warning "UCRT fails to build libgomp; so, libgomp was disabled"
-fi
+#if [[ $MINGW_PACKAGE_PREFIX == *-ucrt-* && "$_enable_libgomp" == "yes" ]]; then
+  #_enable_libgomp=no
+  #warning "UCRT fails to build libgomp; so, libgomp was disabled"
+#fi
 if [[ "$_enable_threads" != "yes" || "$_threads" != "posix" ]]; then
   _enable_libgomp=no
   _enable_libatomic=no
@@ -57,7 +57,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit-git")
         )
-pkgver=10.5.0+d20230707.r1.c1.gd04fe5541c53
+pkgver=10.5.0+d20230707.r1.c2.gd04fe5541c53
 pkgrel=1
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
@@ -185,10 +185,10 @@ prepare() {
   git am --abort || true
 
   ${GIT_AM} ${srcdir}/0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
+  ${GIT_AM} ${srcdir}/0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch
 
   apply_patch_with_msg \
     0002-Relocate-libintl.patch \
-    0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch \
     0005-Windows-Don-t-ignore-native-system-header-dir.patch \
     0006-Windows-New-feature-to-allow-overriding.patch \
     0007-Build-EXTRA_GNATTOOLS-for-Ada.patch \
