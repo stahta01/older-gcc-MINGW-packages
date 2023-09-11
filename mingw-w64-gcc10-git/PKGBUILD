@@ -14,7 +14,7 @@ _threads="posix"         # Use posix for production
 options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 ### Language build options
 _enable_ada=yes          # Use yes for production
-_enable_d=no             # Use no for production
+_enable_d=yes            # Use yes for production
 _enable_fortran=no       # Use no for production
 _enable_jit=no           # Use no for production
 _enable_objc=no          # Use no for production
@@ -323,6 +323,8 @@ build() {
   fi
   if [ "$_enable_d" == "yes" ]; then
     _languages+=",d"
+    #extra_config+=('--enable-libphobos')
+    #extra_config+=('--with-libphobos-druntime-only=yes')
   fi
   if [ "$_enable_fortran" == "yes" ]; then
     _languages+=",fortran"
@@ -649,6 +651,9 @@ package_gcc-d-git() {
   mkdir -p ${pkgdir}${MINGW_PREFIX}/{bin,lib}
 
   cd ${srcdir}${MINGW_PREFIX}
+  cp bin/gdc.exe                                         ${pkgdir}${MINGW_PREFIX}/bin/
+  mkdir -p                                               ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}
+  cp lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/d21.exe        ${pkgdir}${MINGW_PREFIX}/lib/gcc/${MINGW_CHOST}/${pkgver%%+*}/
 }
 
 package_gcc-objc-git() {
