@@ -10,18 +10,17 @@
 _include_sub_folder=       #/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production; no fails to work as wanted
 _enable_bootstrap=no    # Use yes for production
+_threads="posix"         # Use posix for production
 options=('staticlibs' '!emptydirs') # '!strip' 'debug')
-# Language build options
+### Language build options
 _enable_ada=yes          # Use yes for production
-_enable_objc=no          # Use no for production
-_enable_jit=no           # Use no for production
 _enable_d=no             # Use no for production
 _enable_fortran=no       # Use no for production
-# Module build options
+_enable_jit=no           # Use no for production
+_enable_objc=no          # Use no for production
+### build options not normally changed
 _enable_libstdcxx=yes    # Use yes for production
 _enable_libatomic=yes    # Use yes for production
-# build options not normally changed
-_threads="posix"         # Use posix for production
 _enable_libquadmath=no   # Use no for production
 _enable_libgomp=yes
 # libitm* and libvtv* are disbled until fixed
