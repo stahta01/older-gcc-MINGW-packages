@@ -5,8 +5,10 @@
 _include_sub_folder=  #/${MINGW_CHOST}
 
 _realname=crt
-pkgbase=mingw-w64-${_realname}10-git
-pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-git"
+_basepkgver=10
+_realpackagename=${_realname}${_basepkgver}
+pkgbase=mingw-w64-${_realpackagename}-git
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realpackagename}-git"
 pkgver=10.0.0.r184.gab72a4850
 pkgrel=1
 # Using GCC12.3 Builds   GCC12.3 GCC11.4
@@ -29,7 +31,8 @@ makedepends=("git"
              "${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-binutils"
              "${MINGW_PACKAGE_PREFIX}-autotools")
-provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+          "${MINGW_PACKAGE_PREFIX}-${_realname}-git")
 conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 options=('!strip' '!buildflags' '!emptydirs')
 source=("mingw-w64"::"git+https://git.code.sf.net/p/mingw-w64/mingw-w64#commit=$_commit"
@@ -80,6 +83,7 @@ build() {
   echo ""
   echo "CC [gcc] := ${CC-gcc}"
   ${CC-gcc} --version | head -1
+  pacman -Q ${MINGW_PACKAGE_PREFIX}-headers
   echo ""
 
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
