@@ -8,6 +8,7 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-x86_64-winpthreads-git-9.0.0.r32.ga
 cp -f ./mingw-w64-gcc10-git/mingw-w64-x86_64-gcc-libs-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-x86_64-gcc-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_64_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-x86_64-gcc-ada-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_64_packages/
+cp -f ./mingw-w64-gcc10-git/mingw-w64-x86_64-gcc-d-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_64_packages/
 
 mkdir -p packages/gcc10.5.0_toolchain_mingw_32_packages
 
@@ -19,6 +20,7 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-i686-winpthreads-git-9.0.0.r32.gae6
 cp -f ./mingw-w64-gcc10-git/mingw-w64-i686-gcc-libs-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_32_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-i686-gcc-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_32_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-i686-gcc-ada-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_32_packages/
+cp -f ./mingw-w64-gcc10-git/mingw-w64-i686-gcc-d-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_32_packages/
 
 mkdir -p packages/gcc10.5.0_toolchain_mingw_UCRT64_packages
 
@@ -30,3 +32,4 @@ cp -f ./mingw-w64-winpthreads9-git/mingw-w64-ucrt-x86_64-winpthreads-git-9.0.0.r
 cp -f ./mingw-w64-gcc10-git/mingw-w64-ucrt-x86_64-gcc-libs-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-ucrt-x86_64-gcc-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_UCRT64_packages/
 cp -f ./mingw-w64-gcc10-git/mingw-w64-ucrt-x86_64-gcc-ada-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_UCRT64_packages/
+cp -f ./mingw-w64-gcc10-git/mingw-w64-ucrt-x86_64-gcc-d-git-10.5.0+d20230707.r1.c2.gd04fe5541c53-1-any.pkg.tar.zst ./packages/gcc10.5.0_toolchain_mingw_UCRT64_packages/
