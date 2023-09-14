@@ -7,15 +7,16 @@
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
 ### Major build options
-_enable_bootstrap=yes    # Use yes for production
-### Language build options
-_enable_ada=no
-_enable_objc=no
-_enable_jit=no
-_enable_d=no            # Use yes for production
-_enable_fortran=no      # Use yes for production
-### build options not normally changed
+_enable_bootstrap=no    # Use yes for production
 _threads="posix"         # Use posix for production
+options=('!emptydirs') # '!strip' 'debug')
+### Language build options
+_enable_ada=yes          # Use yes for production
+_enable_d=no            # Use yes for production
+_enable_fortran=no       # Use no for production
+_enable_jit=no           # Use no for production
+_enable_objc=no          # Use no for production
+### build options not normally changed
 _enable_libquadmath=no   # Use no for production
 
 # =========================================== #
@@ -36,10 +37,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit")
         )
-#_snapshot=20181214
 pkgver=12.3.0
-#_majorver=${pkgver:0:1}
-#_sourcedir=${_realname}-${_majorver}-${_snapshot}
 _sourcedir=${_realname}-${pkgver}
 pkgrel=1
 pkgdesc="GCC for the MinGW-w64"
@@ -50,6 +48,7 @@ license=('GPL' 'LGPL' 'FDL' 'custom')
 groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
 makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              $([[ "$_enable_ada" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-ada")
+             $([[ "$_enable_d" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-d")
              "${MINGW_PACKAGE_PREFIX}-binutils"
              "${MINGW_PACKAGE_PREFIX}-crt"
              "${MINGW_PACKAGE_PREFIX}-headers"
@@ -64,9 +63,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-${_realname}"
              "${MINGW_PACKAGE_PREFIX}-zstd"
              "${MINGW_PACKAGE_PREFIX}-gperf"
              "${MINGW_PACKAGE_PREFIX}-autotools")
-options=('!emptydirs') # '!strip' 'debug')
 source=("https://ftp.gnu.org/gnu/gcc/${_realname}-${pkgver%%+*}/${_realname}-${pkgver}.tar.xz"{,.sig}
-        #https://www.mirrorservice.org/sites/sourceware.org/pub/gcc/snapshots/${_majorver}-${_snapshot}/gcc-${_majorver}-${_snapshot}.tar.xz
         "gdbinit"
         0002-Relocate-libintl.patch
         0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
@@ -170,11 +167,6 @@ prepare() {
   # do not expect ${prefix}/mingw symlink - this should be superceded by
   # 0005-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
   sed -i 's/${prefix}\/mingw\//${prefix}\//g' configure
-
-  # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
-  # it might work at build time and could be important there but beyond that?!
-  local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX})
-  sed -i "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
 }
 
 build() {
@@ -183,6 +175,16 @@ build() {
   export CPPFLAGS=""
   export CFLAGS="-pipe"
   export CXXFLAGS="-pipe"
+
+  cd ${srcdir}/${_sourcedir}
+
+  # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
+  # it might work at build time and could be important there but beyond that?!
+  local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
+  if [ -f gcc/config/i386/mingw32.h.sedbak ]; then
+    cp gcc/config/i386/mingw32.h.sedbak gcc/config/i386/mingw32.h
+  fi
+  sed --in-place=.sedbak "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
 
   [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
   mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
@@ -211,11 +213,11 @@ build() {
         "--with-dwarf2"
       )
       LDFLAGS+=" -Wl,--large-address-aware"
-      local _arch=pentium4
+      extra_config+=("--with-arch=pentium4")
     ;;
 
     x86_64)
-      local _arch=nocona
+      extra_config+=("--with-arch=nocona")
     ;;
   esac
 
@@ -225,6 +227,8 @@ build() {
   fi
   if [ "$_enable_d" == "yes" ]; then
     _languages+=",d"
+    extra_config+=('--enable-libphobos')
+    extra_config+=('--with-libphobos-druntime-only=yes')
   fi
   if [ "$_enable_fortran" == "yes" ]; then
     _languages+=",fortran"
@@ -277,7 +281,6 @@ build() {
     --with-native-system-header-dir=${MINGW_PREFIX}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --enable-checking=release \
-    --with-arch=${_arch} \
     --with-tune=generic \
     --enable-languages=${_languages} \
     --enable-shared \
