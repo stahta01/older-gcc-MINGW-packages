@@ -14,7 +14,7 @@ _threads="posix"         # Use posix for production
 options=('staticlibs' '!emptydirs') # '!strip' 'debug')
 ### Language build options
 _enable_ada=yes          # Use yes for production
-_enable_d=yes            # Use yes for production
+_enable_d=no             # Use no for production
 _enable_fortran=no       # Use no for production
 _enable_jit=no           # Use no for production
 _enable_objc=no          # Use no for production
