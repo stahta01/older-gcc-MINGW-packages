@@ -56,7 +56,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_objc" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-${_realname}-objc-git")
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit-git")
         )
-pkgver=10.5.0+d20230707.r1.c2.gd04fe5541c53
+pkgver=10.5.0+d20230707.r1.c13.gd04fe5541c53
 pkgrel=1
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
@@ -181,24 +181,25 @@ prepare() {
     #gcc/jit/jit-w32.h gcc/jit/jit-w32.c \
     #gcc/testsuite/gcc.c-torture/execute/20210505-1.c
 
-  git am --abort || true
-
   ${GIT_AM} ${srcdir}/0003-Windows-Follow-Posix-dir-exists-semantics-more-close.patch
   ${GIT_AM} ${srcdir}/0004-Windows-Use-not-in-progpath-and-leave-case-as-is.patch
+  ${GIT_AM} ${srcdir}/0005-Windows-Don-t-ignore-native-system-header-dir.patch
+  ${GIT_AM} ${srcdir}/0006-Windows-New-feature-to-allow-overriding.patch
+  ${GIT_AM} ${srcdir}/0007-Build-EXTRA_GNATTOOLS-for-Ada.patch
+  ${GIT_AM} ${srcdir}/0008-Prettify-linking-no-undefined.patch
+  ${GIT_AM} ${srcdir}/0009-gcc-make-xmmintrin-header-cplusplus-compatible-depre.patch
+  ${GIT_AM} ${srcdir}/0010-Fix-using-large-PCH.patch
+  ${GIT_AM} ${srcdir}/0011-Enable-shared-gnat-implib.patch
+  ${GIT_AM} ${srcdir}/0014-gcc-9-branch-clone_function_name_1-Retain-any-stdcall-suffix.patch
+  ${GIT_AM} ${srcdir}/0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch
+  ${GIT_AM} ${srcdir}/0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch
+
+  # https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=c51f1e7427e6a5ae2a6d82b5a790df77a3adc99a
+  ${GIT_AM} ${srcdir}/0200-ms_printf-improvements.patch
 
   apply_patch_with_msg \
     0002-Relocate-libintl.patch \
-    0005-Windows-Don-t-ignore-native-system-header-dir.patch \
-    0006-Windows-New-feature-to-allow-overriding.patch \
-    0007-Build-EXTRA_GNATTOOLS-for-Ada.patch \
-    0008-Prettify-linking-no-undefined.patch \
-    0009-gcc-make-xmmintrin-header-cplusplus-compatible-depre.patch \
-    0010-Fix-using-large-PCH.patch \
-    0011-Enable-shared-gnat-implib.patch \
-    0012-Handle-spaces-in-path-for-default-manifest.patch \
-    0014-gcc-9-branch-clone_function_name_1-Retain-any-stdcall-suffix.patch \
-    0020-libgomp-Don-t-hard-code-MS-printf-attributes.patch \
-    0021-gcc-config-i386-mingw32.h-Ensure-lmsvcrt-precede-lke.patch
+    0012-Handle-spaces-in-path-for-default-manifest.patch
 
   #apply_patch_with_msg \
     #0130-libstdc++-in-out.patch
@@ -215,10 +216,6 @@ prepare() {
   # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96948
   apply_patch_with_msg \
     0160-libbacktrace-seh.patch
-
-  # https://gcc.gnu.org/git/?p=gcc.git;a=commit;h=c51f1e7427e6a5ae2a6d82b5a790df77a3adc99a
-  apply_patch_with_msg \
-    0200-ms_printf-improvements.patch
 
   # https://github.com/msys2/MINGW-packages/issues/8094
   # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100402
