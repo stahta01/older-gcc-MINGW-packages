@@ -156,15 +156,15 @@ prepare() {
   git am "${srcdir}"/0150-re-PR-target-66488-segfault-on-sizeof-long-sizeof-vo.patch
 
   git am "${srcdir}"/0240-mh-mingw-Also-set-__USE_MINGW_ACCESS-flag-for-C-cod.patch
-}
-
-build() {
-  cd ${srcdir}/${_sourcedir}
 
   # do not expect $prefix/mingw symlink - this should be superceded by
   # 0004-Windows-Don-t-ignore-native-system-header-dir.patch .. but isn't!
   git restore configure
   sed -i 's/${prefix}\/mingw\//${prefix}\//g' configure
+}
+
+build() {
+  cd ${srcdir}/${_sourcedir}
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
