@@ -1,0 +1,132 @@
+# Maintainer:  Tim Stahlhut <stahta01@gmail.com>
+# Contributor: Alexey Pavlov <alexpux@gmail.com>
+# Contributor: Martell Malone <martellmalone@gmail.com>
+# Contributor: Renato Silva <br.renatosilva@gmail.com>
+
+_realname=winpthreads
+pkgbase=mingw-w64-${_realname}-git
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
+pkgver=4.0.6.r18.gae0e22cd1
+pkgrel=1
+_commit='ae0e22cd19de833fe33450b500a051405e17661c'
+pkgdesc="MinGW-w64 winpthreads library"
+url="http://mingw-w64.sourceforge.net"
+# The main license of `winpthreads' is MIT, but parts of this library are
+# derived from the "POSIX Threads for Microsoft Windows" library, which is
+# licensed under BSD [1].
+license=('MIT' 'BSD')
+arch=('any')
+groups=("${MINGW_PACKAGE_PREFIX}-toolchain")
+makedepends=("git"
+             "${MINGW_PACKAGE_PREFIX}-gcc"
+             "${MINGW_PACKAGE_PREFIX}-binutils"
+             "${MINGW_PACKAGE_PREFIX}-crt-git"
+             "${MINGW_PACKAGE_PREFIX}-headers-git")
+options=('strip' '!buildflags' 'staticlibs' '!emptydirs' '!debug')
+source=("mingw-w64"::"git+https://git.code.sf.net/p/mingw-w64/mingw-w64#commit=$_commit"
+        "0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch")
+sha256sums=('SKIP'
+            'd9e8af81682d9bf70e3d87506f51156cec61260b810a234bce861cb2eb3a5919')
+
+pkgver() {
+  cd "${srcdir}/mingw-w64"
+  git describe --long ${_commit} | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
+}
+
+prepare() {
+  cd "${srcdir}/mingw-w64"
+  git am "${srcdir}"/0001-Define-__-de-register_frame_info-in-fake-libgcc_s.patch
+  cd "${srcdir}"/mingw-w64/mingw-w64-libraries/winpthreads
+  autoreconf -vfi
+}
+
+build() {
+  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
+  mkdir -p "${srcdir}"/build-${MINGW_CHOST} && cd ${srcdir}/build-${MINGW_CHOST}
+
+  declare -a extra_config
+  if check_option "debug" "y"; then
+    extra_config+=("CFLAGS=-O0 -g -DWINPTHREAD_DBG")
+    extra_config+=("CXXFLAGS=-O0 -g -DWINPTHREAD_DBG")
+    extra_config+=("CXXFLAGS=")
+  fi
+
+  ../mingw-w64/mingw-w64-libraries/winpthreads/configure \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --enable-static \
+    --enable-shared \
+    "${extra_config[@]}"
+
+  # I failed to figure out how to disable stripping, this
+  # will have to do instead.
+  if check_option "strip" "n"; then
+    sed -i 's,^STRIP = .*$,STRIP = true,g'                Makefile
+    sed -i 's,^STRIP=.*$,STRIP=true,g'                    libtool
+    sed -i 's,old_striplib=.*$strip,old_striplib=true,g'  libtool
+    sed -i 's,striplib=.*$,striplib=true,g'               libtool
+  fi
+
+  make
+}
+
+_install_licenses() {
+  # TODO: any more license files?
+  install -Dm644 ${srcdir}/mingw-w64/COPYING                                 ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/COPYING
+  install -Dm644 ${srcdir}/mingw-w64/mingw-w64-libraries/winpthreads/COPYING ${pkgdir}${MINGW_PREFIX}/share/licenses/$1/mingw-w64-libraries/winpthreads/COPYING
+}
+
+package_winpthreads() {
+  depends=("${MINGW_PACKAGE_PREFIX}-crt-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git=${pkgver}")
+  replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-svn")
+  provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+
+  cd ${srcdir}/build-${MINGW_CHOST}
+  make DESTDIR=${pkgdir} install
+
+  mkdir -p ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}
+  mv ${pkgdir}${MINGW_PREFIX}/include ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/
+  mv ${pkgdir}${MINGW_PREFIX}/lib ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/
+  rm -rf ${pkgdir}${MINGW_PREFIX}/bin
+
+  _install_licenses ${_realname}
+}
+
+package_libwinpthread() {
+  provides=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-libwinpthread")
+  replaces=("${MINGW_PACKAGE_PREFIX}-libwinpthread-svn")
+
+  cd ${srcdir}/build-${MINGW_CHOST}
+  make DESTDIR=${pkgdir} install
+
+  rm -rf ${pkgdir}${MINGW_PREFIX}/include
+  rm -rf ${pkgdir}${MINGW_PREFIX}/lib
+
+  _install_licenses libwinpthread
+}
+
+# Wrappers for package functions
+
+# 32-bit wrappers
+package_mingw-w64-i686-winpthreads-git() {
+  package_winpthreads
+}
+
+package_mingw-w64-i686-libwinpthread-git() {
+  package_libwinpthread
+}
+
+# 64-bit wrappers
+package_mingw-w64-x86_64-winpthreads-git() {
+  package_winpthreads
+}
+
+package_mingw-w64-x86_64-libwinpthread-git() {
+  package_libwinpthread
+}
+
+# [1] http://locklessinc.com/articles/pthreads_on_windows/
