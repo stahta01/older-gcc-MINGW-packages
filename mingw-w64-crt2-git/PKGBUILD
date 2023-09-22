@@ -1,11 +1,6 @@
 # Maintainer:  Tim Stahlhut <stahta01@gmail.com>
 # Contributor: Alexey Pavlov
 
-# If you get these Assembler messages or ones with "bsr" instead of "bsf"
-#   try re-building GCC.
-# Error: suffix or operands invalid for `bsf'
-# Error: operand size mismatch for `bsf'
-
 _include_sub_folder=/${MINGW_CHOST}
 _build_using_external_compiler=no     # Yes for bootstrap part 1 and 2
 _build_headers_only=no                # Yes for bootstrap part 1
@@ -21,34 +16,31 @@ if [[ "$_build_using_external_compiler" == "yes" ]]; then
 else
   _gcc_version=$(gcc -dumpversion)
   echo "_gcc_version := $_gcc_version"
-  if [[ ${_gcc_version:0:3} == "4.2" ]]; then
-    pkgrel=2
-  elif [[ ${_gcc_version:0:3} == "4.3" ]]; then
-    pkgrel=3
-  elif [[ ${_gcc_version:0:3} == "4.4" ]]; then
-    pkgrel=4
-  elif [[ ${_gcc_version:0:3} == "4.5" ]]; then
-    pkgrel=5
-  else
-    pkgrel=0
-  fi
+
+  pkgrel=5
 fi
-#_commit='24b1f9cdcf1d425700312373b14e2a6e58c6d0aa' # 2.0.0.2777
-if [[ ${_gcc_version:0:3} == "4.2" ]]; then
-  _commit='06c5a4241b475e784dbed9c54f7735106ae6d991' # 2.0.0.2656 (v2.0.6) # default version to build
+
+if [[ "$_build_using_external_compiler" == "yes" ]]; then
+  _commit='06c5a4241b475e784dbed9c54f7735106ae6d991' # 2.0.0.2656 (v2.0.6)
+elif [[ ${_gcc_version:0:3} == "4.2" ]]; then
+  _commit='aab0d078eab2d135c43d8a9453eade13c255244f' # (tag: v2.0.5)
+elif [[ ${_gcc_version:0:3} == "4.3" ]]; then
+  _commit='56b79e1c0757237ea73c0632da4c41bf8c97a630' # 2.0.0.2668 (v2.0.7)
 else
   _commit='ea32a0c5bf6f2a2473149d11314f7b92df63cdf4' # 2.0.0.2715 (v2.0.9)
 fi
-#else
-  #_commit='696f2831b313e1be34799aec7cf4fc189d6666d5' # 2.0.0.2684 (v2.0.8)
-  #_commit='56b79e1c0757237ea73c0632da4c41bf8c97a630' # 2.0.0.2668 (v2.0.7)
-#fi
+#_commit='24b1f9cdcf1d425700312373b14e2a6e58c6d0aa' # 2.0.0.2777
+#_commit='ea32a0c5bf6f2a2473149d11314f7b92df63cdf4' # 2.0.0.2715 (v2.0.9)
+#_commit='696f2831b313e1be34799aec7cf4fc189d6666d5' # 2.0.0.2684 (v2.0.8) # Failed GCC 4.3
+#_commit='56b79e1c0757237ea73c0632da4c41bf8c97a630' # 2.0.0.2668 (v2.0.7)
+#_commit='06c5a4241b475e784dbed9c54f7735106ae6d991' # 2.0.0.2656 (v2.0.6) # Failed GCC 4.2
 #_commit='aab0d078eab2d135c43d8a9453eade13c255244f' # (tag: v2.0.5)
 #_commit='854a72dcb3fdff19464e399a41b75156a839ba78' # (tag: v2.0.4)
 #_commit='1920f0dcafa23b0a7fd2e8a4407fe56989351941' # (tag: v2.0.3)
 #_commit='6ce2e2e42e5c51a82a3a247d35f3e61324a558bf' # (tag: v2.0.2)
 #_commit='6afaf98aa0a41c245075f1f0a13f8e0e68d59b10' # 2.0.0.2598 (v2.0.1) # error: x86intrin.h: No such file or directory
 #_commit='6e5ac49e300a10c1dc4ac474fb1d1891ab5520d3' # (tag: v2.0)
+
 pkgdesc='MinGW-w64 CRT for Windows'
 arch=('any')
 url='https://mingw-w64.sourceforge.io/'
