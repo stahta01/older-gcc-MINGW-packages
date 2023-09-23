@@ -301,7 +301,7 @@ build() {
     --with-gnu-as --with-gnu-ld \
     "${extra_config[@]}"
 
-  make MAKEINFO=true pod2man=true all
+  make MAKEINFO=true pod2man=true -j1 all
 }
 
 package_gcc-git() {
