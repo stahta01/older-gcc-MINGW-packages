@@ -178,7 +178,8 @@ package_crt-git() {
 package_headers-git() {
   pkgdesc="MinGW-w64 headers for Windows"
   provides=("${MINGW_PACKAGE_PREFIX}-headers")
-  conflicts=("${MINGW_PACKAGE_PREFIX}-headers")
+  conflicts=("${MINGW_PACKAGE_PREFIX}-headers"
+             "${MINGW_PACKAGE_PREFIX}-winpthreads")
 
   msg "Copying ${MSYSTEM} headers"
   mkdir -p ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}
