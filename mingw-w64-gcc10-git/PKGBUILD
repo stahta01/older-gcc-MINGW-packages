@@ -7,7 +7,7 @@
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
 ### Major build options
-_include_sub_folder=       #/${MINGW_CHOST}
+_include_sub_folder=/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production; no fails to work as wanted
 _enable_bootstrap=no    # Use yes for production
 _threads="posix"         # Use posix for production
@@ -57,7 +57,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit-git")
         )
 pkgver=10.5.0+d20230707.r1.c13.gd04fe5541c53
-pkgrel=1
+pkgrel=2
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64')
