@@ -8,6 +8,14 @@ fi
   MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
   cd ../mingw-w64-headers7-git && \
   MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
+  cd ../mingw-w64-crt4-git && \
+  MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
+  cd ../mingw-w64-crt7-git && \
+  MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
+  cd ../mingw-w64-winpthreads4-git && \
+  MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
+  cd ../mingw-w64-winpthreads7-git && \
+  MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
   cd ../mingw-w64-gcc5-git && \
   MINGW_ARCH=mingw64 makepkg-mingw -s --holdver --nobuild && \
   echo "Script worked"
