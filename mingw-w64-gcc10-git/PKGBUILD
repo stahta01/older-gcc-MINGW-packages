@@ -343,6 +343,14 @@ build() {
     _languages+=",jit"
   fi
 
+  # Standard values
+  extra_config+=("--with-local-prefix=${MINGW_PREFIX}/local")
+  extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include")
+
+  ## Non Standard values
+  #extra_config+=("--with-local-prefix=${MINGW_PREFIX}/${MINGW_CHOST}")
+  #extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}/${MINGW_CHOST}/include")
+
   # so libgomp DLL gets built despide static libdl
   export lt_cv_deplibs_check_method='pass_all'
 
@@ -358,11 +366,9 @@ build() {
 
   ../${_sourcedir}/configure \
     --prefix=${MINGW_PREFIX} \
-    --with-local-prefix=${MINGW_PREFIX}/local \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
     --target=${MINGW_CHOST} \
-    --with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include \
     --libexecdir=${MINGW_PREFIX}/lib \
     --enable-checking=release \
     --with-tune=generic \
