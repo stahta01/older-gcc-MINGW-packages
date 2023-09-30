@@ -7,7 +7,6 @@
 # Contributor: Kirill Müller <krlmlr@mailbox.org>
 
 ### Major build options
-_include_sub_folder=/${MINGW_CHOST}
 _enable_threads=yes      # Use yes for production; no fails to work as wanted
 _enable_bootstrap=no    # Use yes for production
 _threads="posix"         # Use posix for production
@@ -57,7 +56,7 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git"
          $([[ "$_enable_jit" == "yes" ]] && echo "${MINGW_PACKAGE_PREFIX}-libgccjit-git")
         )
 pkgver=10.5.0+d20230707.r1.c13.gd04fe5541c53
-pkgrel=2
+pkgrel=3
 pkgdesc="GCC for the MinGW-w64"
 arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64')
@@ -256,7 +255,7 @@ build() {
 
   # change hardcoded /mingw prefix to the real prefix .. isn't this rubbish?
   # it might work at build time and could be important there but beyond that?!
-  local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX}${_include_sub_folder})
+  local MINGW_NATIVE_PREFIX=$(cygpath -am ${MINGW_PREFIX})
   git restore gcc/config/i386/mingw32.h
   sed -i "s#\\/mingw\\/#${MINGW_NATIVE_PREFIX//\//\\/}\\/#g" gcc/config/i386/mingw32.h
 
@@ -343,13 +342,13 @@ build() {
     _languages+=",jit"
   fi
 
-  # Standard values
-  extra_config+=("--with-local-prefix=${MINGW_PREFIX}/local")
-  extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}${_include_sub_folder}/include")
+  ## Standard values
+  #extra_config+=("--with-local-prefix=${MINGW_PREFIX}/local")
+  #extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}/include")
 
-  ## Non Standard values
-  #extra_config+=("--with-local-prefix=${MINGW_PREFIX}/${MINGW_CHOST}")
-  #extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}/${MINGW_CHOST}/include")
+  # Non Standard values
+  extra_config+=("--with-local-prefix=${MINGW_PREFIX}/${MINGW_CHOST}")
+  extra_config+=("--with-native-system-header-dir=${MINGW_PREFIX}/${MINGW_CHOST}/include")
 
   # so libgomp DLL gets built despide static libdl
   export lt_cv_deplibs_check_method='pass_all'
