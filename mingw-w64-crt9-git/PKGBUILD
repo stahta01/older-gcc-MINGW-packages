@@ -20,6 +20,14 @@ elif [[ ${_gcc_version:0:1} == "8" ]]; then
   pkgrel=4
 elif [[ ${_gcc_version:0:1} == "7" ]]; then
   pkgrel=5
+elif [[ ${_gcc_version:0:1} == "6" ]]; then
+  pkgrel=6
+elif [[ ${_gcc_version:0:1} == "5" ]]; then
+  pkgrel=7
+elif [[ ${_gcc_version:0:3} == "4.9" ]]; then
+  pkgrel=8
+elif [[ ${_gcc_version:0:3} == "4.8" ]]; then
+  pkgrel=9
 else
   pkgrel=0
 fi
