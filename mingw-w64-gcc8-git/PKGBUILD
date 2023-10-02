@@ -6,7 +6,7 @@
 # Contributor: Liu Hao <lh_mouse@126.com>
 
 ### Major build options
-_include_sub_folder=/${MINGW_CHOST}
+_include_sub_folder=          #/${MINGW_CHOST}
 _enable_bootstrap=no               # Use yes for production
 _build_using_external_compiler=no   # Use no for production
 _enable_isl=no
