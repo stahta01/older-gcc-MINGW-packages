@@ -5,7 +5,7 @@
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 
 ### Major build options
-_include_sub_folder=/${MINGW_CHOST}
+_include_sub_folder=          #/${MINGW_CHOST}
 _enable_bootstrap=yes    # Use yes for production
 #options=('staticlibs' '!emptydirs' '!strip' 'debug')
 options=('staticlibs' '!emptydirs' 'strip' '!debug')
