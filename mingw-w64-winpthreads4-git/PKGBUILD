@@ -3,6 +3,9 @@
 # Contributor: Martell Malone <martellmalone@gmail.com>
 # Contributor: Renato Silva <br.renatosilva@gmail.com>
 
+### Major build options
+_include_sub_folder=          #/${MINGW_CHOST}
+
 _realname=winpthreads
 pkgbase=mingw-w64-${_realname}-git
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}-git" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
@@ -109,9 +112,9 @@ package_winpthreads() {
   cd ${srcdir}/build-${MINGW_CHOST}
   make DESTDIR=${pkgdir} install
 
-  mkdir -p ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}
-  mv ${pkgdir}${MINGW_PREFIX}/include ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/
-  mv ${pkgdir}${MINGW_PREFIX}/lib ${pkgdir}${MINGW_PREFIX}/${MINGW_CHOST}/
+  mkdir -p ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}
+  mv ${pkgdir}${MINGW_PREFIX}/include ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}/
+  mv ${pkgdir}${MINGW_PREFIX}/lib ${pkgdir}${MINGW_PREFIX}${_include_sub_folder}/
   rm -rf ${pkgdir}${MINGW_PREFIX}/bin
 
   _install_licenses ${_realname}
